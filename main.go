@@ -21,19 +21,30 @@ type EscalaSimiliar struct {
 	NotasCoincidentes int
 	RatioNotas        string
 	Similitud         float32
+	NotasFaltantes    []string
 }
 
 var escalas = []Escala{
 	{Nombre: "Mayor", Intervalos: [7]string{"T", "T", "S", "T", "T", "T", "S"}, CantidadNotas: 7},
 	{Nombre: "Natural Menor", Intervalos: [7]string{"T", "S", "T", "T", "S", "T", "T"}, CantidadNotas: 7},
 	{Nombre: "Melodica Menor", Intervalos: [7]string{"T", "S", "T", "T", "T", "T", "S"}, CantidadNotas: 7},
-	// {Nombre: "Harmonica Menor", Intervalos: [7]string{"T", "S", "T", "T", "S", "T", "T"}},
+	{Nombre: "Harmonica Menor", Intervalos: [7]string{"T", "S", "T", "T", "S", "TS", "S"}, CantidadNotas: 7},
 	{Nombre: "Pentatonica Mayor", Intervalos: [7]string{"T", "T", "TS", "T", "TS"}, CantidadNotas: 5},
 	{Nombre: "Pentatonica Menor", Intervalos: [7]string{"TS", "T", "T", "TS", "T"}, CantidadNotas: 5},
+
+	// {Nombre: "Jónico (Modo)", Intervalos: [7]string{"T", "T", "S", "T", "T", "T", "S"}, CantidadNotas: 7},
+	// {Nombre: "Dórico (Modo)", Intervalos: [7]string{"T", "S", "T", "T", "T", "S", "T"}, CantidadNotas: 7},
+	// {Nombre: "Frigio (Modo)", Intervalos: [7]string{"S", "T", "T", "T", "S", "T", "T"}, CantidadNotas: 7},
+	// {Nombre: "Lidio (Modo)", Intervalos: [7]string{"T", "T", "T", "S", "T", "T", "S"}, CantidadNotas: 7},
+	// {Nombre: "Mixolidio (Modo)", Intervalos: [7]string{"T", "T", "T", "S", "T", "T", "S"}, CantidadNotas: 7},
+	// {Nombre: "Eólico (Modo)", Intervalos: [7]string{"T", "S", "T", "T", "S", "T", "T"}, CantidadNotas: 7},
+	// {Nombre: "Locrio (Modo)", Intervalos: [7]string{"S", "T", "T", "S", "T", "T", "T"}, CantidadNotas: 7},
+
+	{Nombre: "Enigmática", Intervalos: [7]string{"S", "TS", "T", "T", "T", "S", "S"}, CantidadNotas: 7},
 }
 
 func main() {
-	nota_selec := "C"
+	nota_selec := "A"
 	esca_selec := escalas[3]
 	if indexOf(nota_selec, notas[:]) < 0 {
 		fmt.Println("Nota no valida")
@@ -49,15 +60,15 @@ func main() {
 
 	// Buscar escala similares o iguales con notas ingresadas
 	// var notas_encontrar = []string{"C", "D", "E", "F", "G", "A", "B"}
-	var notas_encontrar = []string{"C", "D", "E", "G", "A"}
+	// var notas_encontrar = []string{"C", "D", "E", "G", "A"}
+	var notas_encontrar = []string{"A", "B", "D", "E", "G", "C#", "F#", "G#"}
 	escalas_similares := encontrar_escala(notas_encontrar)
 	// fmt.Println(escalas_similares)
 	for _, escala := range escalas_similares[0:10] {
-		linea := fmt.Sprintf("%s %s Ratio Notas: %s Coincidencias: %d%% Similitud: %.2f",
+		linea := fmt.Sprintf("%s %s Ratio Notas: %s Coincidencias: %d%% Similitud: %.2f Notas Faltantes: %v \n",
 			escala.Nota, escala.Nombre,
-			escala.RatioNotas, escala.NotasCoincidentes, escala.Similitud)
-
-		fmt.Println(linea)
+			escala.RatioNotas, escala.NotasCoincidentes, escala.Similitud, escala.NotasFaltantes)
+		fmt.Print(linea)
 	}
 }
 
@@ -69,13 +80,28 @@ func encontrar_escala(notas_cancion []string) []EscalaSimiliar {
 	for _, escala := range escalas_todas {
 		// Determinar que coincidan notas
 		var notas_coincidencia []string
-		for _, nota := range escala.Intervalos {
-			if indexOf(nota, notas_cancion) >= 0 {
+		var notas_faltantes []string
+
+		// for _, nota := range escala.Intervalos {
+		// 	if indexOf(nota, notas_cancion) >= 0 {
+		// 		if indexOf(nota, notas_coincidencia) == -1 {
+		// 			notas_coincidencia = append(notas_coincidencia, nota)
+		// 		}
+		// 	} else {
+		// 		notas_faltantes = append(notas_faltantes, nota)
+		// 	}
+		// }
+
+		for _, nota := range notas_cancion {
+			if indexOf(nota, escala.Intervalos[:]) >= 0 {
 				if indexOf(nota, notas_coincidencia) == -1 {
 					notas_coincidencia = append(notas_coincidencia, nota)
 				}
+			} else {
+				notas_faltantes = append(notas_faltantes, nota)
 			}
 		}
+
 		// Si hay al menos una coincidencia la agrega al return
 		if len(notas_coincidencia) > 0 {
 			var escala_similar EscalaSimiliar
@@ -84,18 +110,29 @@ func encontrar_escala(notas_cancion []string) []EscalaSimiliar {
 			escala_similar.NotasCoincidentes = len(notas_coincidencia) * 100 / escala.CantidadNotas
 			escala_similar.RatioNotas = fmt.Sprintf("%d/%d", len(notas_coincidencia), escala.CantidadNotas)
 			escala_similar.Similitud = float32(len(notas_coincidencia)) / float32(len(notas_cancion)) * 100
+			escala_similar.NotasFaltantes = notas_faltantes
 			escalas_similares = append(escalas_similares, escala_similar)
 		}
 	}
 	// Ordenar por similitud
 	sort.SliceStable(escalas_similares, func(i, j int) bool {
 		// return escalas_similares[i].Similitud > escalas_similares[j].Similitud
+
+		// Order by Similitud, Coincidencias
 		ordenSimilitud := escalas_similares[i].Similitud > escalas_similares[j].Similitud
 		if escalas_similares[i].Similitud == escalas_similares[j].Similitud {
 			ordenCoincidencias := escalas_similares[i].NotasCoincidentes > escalas_similares[j].NotasCoincidentes
 			return ordenCoincidencias
 		}
 		return ordenSimilitud
+
+		// Order by Coincidencias, Similitud
+		// ordenCoincidencias := escalas_similares[i].NotasCoincidentes > escalas_similares[j].NotasCoincidentes
+		// if float32(escalas_similares[i].NotasCoincidentes) == float32(escalas_similares[j].NotasCoincidentes) {
+		// 	ordenSimilitud := escalas_similares[i].Similitud > escalas_similares[j].Similitud
+		// 	return ordenSimilitud
+		// }
+		// return ordenCoincidencias
 	})
 
 	return escalas_similares
