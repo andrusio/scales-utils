@@ -1,9 +1,11 @@
 package main
 
 import (
+	"flag"
 	"fmt"
+	"os"
 	"sort"
-	// "os"
+	"strings"
 )
 
 var notas = [12]string{"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"}
@@ -27,10 +29,10 @@ type EscalaSimiliar struct {
 var escalas = []Escala{
 	{Nombre: "Mayor", Intervalos: [7]string{"T", "T", "S", "T", "T", "T", "S"}, CantidadNotas: 7},
 	{Nombre: "Natural Menor", Intervalos: [7]string{"T", "S", "T", "T", "S", "T", "T"}, CantidadNotas: 7},
-	{Nombre: "Melodica Menor", Intervalos: [7]string{"T", "S", "T", "T", "T", "T", "S"}, CantidadNotas: 7},
-	{Nombre: "Harmonica Menor", Intervalos: [7]string{"T", "S", "T", "T", "S", "TS", "S"}, CantidadNotas: 7},
-	{Nombre: "Pentatonica Mayor", Intervalos: [7]string{"T", "T", "TS", "T", "TS"}, CantidadNotas: 5},
-	{Nombre: "Pentatonica Menor", Intervalos: [7]string{"TS", "T", "T", "TS", "T"}, CantidadNotas: 5},
+	{Nombre: "Melódica Menor", Intervalos: [7]string{"T", "S", "T", "T", "T", "T", "S"}, CantidadNotas: 7},
+	{Nombre: "Harmónica Menor", Intervalos: [7]string{"T", "S", "T", "T", "S", "TS", "S"}, CantidadNotas: 7},
+	{Nombre: "Pentatónica Mayor", Intervalos: [7]string{"T", "T", "TS", "T", "TS"}, CantidadNotas: 5},
+	{Nombre: "Pentatónica Menor", Intervalos: [7]string{"TS", "T", "T", "TS", "T"}, CantidadNotas: 5},
 
 	// {Nombre: "Jónico (Modo)", Intervalos: [7]string{"T", "T", "S", "T", "T", "T", "S"}, CantidadNotas: 7},
 	// {Nombre: "Dórico (Modo)", Intervalos: [7]string{"T", "S", "T", "T", "T", "S", "T"}, CantidadNotas: 7},
@@ -44,32 +46,74 @@ var escalas = []Escala{
 }
 
 func main() {
-	nota_selec := "A"
-	esca_selec := escalas[3]
-	if indexOf(nota_selec, notas[:]) < 0 {
-		fmt.Println("Nota no valida")
+	var nota string
+	var escala_input string
+	var notas_buscar string
+
+	flag.StringVar(&nota, "nota", "", "Nota usada para la escala")
+	flag.StringVar(&escala_input, "escala", "", "Escala a generar")
+	flag.StringVar(&notas_buscar, "notas", "", "Busca coincidencias de Escalas a partir de notas")
+	flag.Parse()
+
+	if nota == "" && escala_input == "" && notas_buscar == "" {
+		flag.PrintDefaults()
+		fmt.Printf("\n Ejemplos: \n Generar una escala en particular: %s -nota C# -escala \"Natural Menor\" \n Búsqueda de escalas: %s -notas \"C,D,E,F,G\" \n", os.Args[0], os.Args[0])
 		return
 	}
 
 	// Genera escala con nota solicitada
-	notas_escala := generar_escala(nota_selec, esca_selec)
-	fmt.Println("Nota seleccionada: ", nota_selec)
-	fmt.Println("Escala seleccionada:", esca_selec.Nombre)
-	fmt.Println(notas_escala)
-	fmt.Println("-----------------------")
+	if nota != "" || escala_input != "" {
+		// Comprobar nota valida
+		if indexOf(nota, notas[:]) < 0 {
+			fmt.Println("Nota no válida")
+			return
+		}
+
+		// Comprobar escala valida
+		indice_escala := 99
+		for i, escala := range escalas {
+			if escala.Nombre == escala_input {
+				indice_escala = i
+				break
+			}
+		}
+		if indice_escala > len(escalas) {
+			fmt.Println("Escala no válida. Seleccione alguna de las disponibles:")
+			for _, escala := range escalas {
+				fmt.Printf("- %s ", escala.Nombre)
+			}
+			fmt.Printf("-\n")
+			return
+		}
+		notas_escala := generar_escala(nota, escalas[indice_escala])
+		fmt.Println("-----------------------")
+		fmt.Println("Nota seleccionada: ", nota)
+		fmt.Println("Escala seleccionada:", escalas[indice_escala].Nombre)
+		fmt.Println(notas_escala)
+		fmt.Println("-----------------------")
+		return
+	}
 
 	// Buscar escala similares o iguales con notas ingresadas
-	// var notas_encontrar = []string{"C", "D", "E", "F", "G", "A", "B"}
-	// var notas_encontrar = []string{"C", "D", "E", "G", "A"}
-	var notas_encontrar = []string{"A", "B", "D", "E", "G", "C#", "F#", "G#"}
-	escalas_similares := encontrar_escala(notas_encontrar)
-	// fmt.Println(escalas_similares)
-	for _, escala := range escalas_similares[0:10] {
-		linea := fmt.Sprintf("%s %s Ratio Notas: %s Coincidencias: %d%% Similitud: %.2f Notas Faltantes: %v \n",
-			escala.Nota, escala.Nombre,
-			escala.RatioNotas, escala.NotasCoincidentes, escala.Similitud, escala.NotasFaltantes)
-		fmt.Print(linea)
+	if notas_buscar != "" {
+		notas_encontrar := strings.Split(notas_buscar, ",")
+		escalas_similares := encontrar_escala(notas_encontrar)
+		for _, escala := range escalas_similares[0:10] {
+			linea := fmt.Sprintf("%s %s | Ratio Notas: %s Coincidencias: %d%% Similitud: %.2f Notas Faltantes: %v \n",
+				escala.Nota, escala.Nombre,
+				escala.RatioNotas, escala.NotasCoincidentes, escala.Similitud, escala.NotasFaltantes)
+			fmt.Print(linea)
+		}
 	}
+
+	// nota_selec := "A"
+	// esca_selec := escalas[3]
+	// if indexOf(nota_selec, notas[:]) < 0 {
+	// 	fmt.Println("Nota no valida")
+	// 	return
+	// }
+	// var notas_encontrar = []string{"A", "B", "D", "E", "G", "C#", "F#", "G#"}
+	// fmt.Println(escalas_similares)
 }
 
 func encontrar_escala(notas_cancion []string) []EscalaSimiliar {
