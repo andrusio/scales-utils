@@ -70,14 +70,14 @@ func main() {
 		}
 
 		// Comprobar escala valida
-		indice_escala := 99
+		indice_escala := -1
 		for i, escala := range escalas {
-			if escala.Nombre == escala_input {
+			if strings.EqualFold(escala.Nombre, escala_input) {
 				indice_escala = i
 				break
 			}
 		}
-		if indice_escala > len(escalas) {
+		if indice_escala == -1 {
 			fmt.Println("Escala no válida. Seleccione alguna de las disponibles:")
 			for _, escala := range escalas {
 				fmt.Printf("- %s ", escala.Nombre)
@@ -99,21 +99,12 @@ func main() {
 		notas_encontrar := strings.Split(notas_buscar, ",")
 		escalas_similares := encontrar_escala(notas_encontrar)
 		for _, escala := range escalas_similares[0:10] {
-			linea := fmt.Sprintf("%s %s | Ratio Notas: %s Coincidencias: %d%% Similitud: %.2f Notas Faltantes: %v \n",
+			linea := fmt.Sprintf("%s %s | Ratio Notas: %s Coincidencias: %d%% Similitud: %.2f Notas no incluidas: %v \n",
 				escala.Nota, escala.Nombre,
 				escala.RatioNotas, escala.NotasCoincidentes, escala.Similitud, escala.NotasFaltantes)
 			fmt.Print(linea)
 		}
 	}
-
-	// nota_selec := "A"
-	// esca_selec := escalas[3]
-	// if indexOf(nota_selec, notas[:]) < 0 {
-	// 	fmt.Println("Nota no valida")
-	// 	return
-	// }
-	// var notas_encontrar = []string{"A", "B", "D", "E", "G", "C#", "F#", "G#"}
-	// fmt.Println(escalas_similares)
 }
 
 func encontrar_escala(notas_cancion []string) []EscalaSimiliar {
