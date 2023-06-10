@@ -20,6 +20,7 @@ type Escala struct {
 type EscalaSimiliar struct {
 	Nota              string
 	Nombre            string
+	Notas             [7]string
 	NotasCoincidentes int
 	RatioNotas        string
 	Similitud         float32
@@ -34,6 +35,7 @@ var escalas = []Escala{
 	{Nombre: "Pentatónica Mayor", Intervalos: [7]string{"T", "T", "TS", "T", "TS"}, CantidadNotas: 5},
 	{Nombre: "Pentatónica Menor", Intervalos: [7]string{"TS", "T", "T", "TS", "T"}, CantidadNotas: 5},
 
+	// Modos
 	// {Nombre: "Jónico (Modo)", Intervalos: [7]string{"T", "T", "S", "T", "T", "T", "S"}, CantidadNotas: 7},
 	// {Nombre: "Dórico (Modo)", Intervalos: [7]string{"T", "S", "T", "T", "T", "S", "T"}, CantidadNotas: 7},
 	// {Nombre: "Frigio (Modo)", Intervalos: [7]string{"S", "T", "T", "T", "S", "T", "T"}, CantidadNotas: 7},
@@ -86,11 +88,9 @@ func main() {
 			return
 		}
 		notas_escala := generar_escala(nota, escalas[indice_escala])
-		fmt.Println("-----------------------")
-		fmt.Println("Nota seleccionada: ", nota)
+		fmt.Println("\nNota seleccionada: ", nota)
 		fmt.Println("Escala seleccionada:", escalas[indice_escala].Nombre)
-		fmt.Println(notas_escala)
-		fmt.Println("-----------------------")
+		fmt.Println(notas_escala, "\n")
 		return
 	}
 
@@ -99,9 +99,9 @@ func main() {
 		notas_encontrar := strings.Split(notas_buscar, ",")
 		escalas_similares := encontrar_escala(notas_encontrar)
 		for _, escala := range escalas_similares[0:10] {
-			linea := fmt.Sprintf("%s %s | Ratio Notas: %s Coincidencias: %d%% Similitud: %.2f Notas no incluidas: %v \n",
-				escala.Nota, escala.Nombre,
-				escala.RatioNotas, escala.NotasCoincidentes, escala.Similitud, escala.NotasFaltantes)
+			linea := fmt.Sprintf("\n- %s %s %v \n   Coincidencias: %s (%d%%) | Similitud notas: %d%%  \n   Notas ingresadas no incluidas en la escala: %v \n\n",
+				escala.Nota, escala.Nombre, escala.Notas,
+				escala.RatioNotas, escala.NotasCoincidentes, int(escala.Similitud), escala.NotasFaltantes)
 			fmt.Print(linea)
 		}
 	}
@@ -116,16 +116,6 @@ func encontrar_escala(notas_cancion []string) []EscalaSimiliar {
 		// Determinar que coincidan notas
 		var notas_coincidencia []string
 		var notas_faltantes []string
-
-		// for _, nota := range escala.Intervalos {
-		// 	if indexOf(nota, notas_cancion) >= 0 {
-		// 		if indexOf(nota, notas_coincidencia) == -1 {
-		// 			notas_coincidencia = append(notas_coincidencia, nota)
-		// 		}
-		// 	} else {
-		// 		notas_faltantes = append(notas_faltantes, nota)
-		// 	}
-		// }
 
 		for _, nota := range notas_cancion {
 			if indexOf(nota, escala.Intervalos[:]) >= 0 {
@@ -146,28 +136,19 @@ func encontrar_escala(notas_cancion []string) []EscalaSimiliar {
 			escala_similar.RatioNotas = fmt.Sprintf("%d/%d", len(notas_coincidencia), escala.CantidadNotas)
 			escala_similar.Similitud = float32(len(notas_coincidencia)) / float32(len(notas_cancion)) * 100
 			escala_similar.NotasFaltantes = notas_faltantes
+			escala_similar.Notas = escala.Intervalos
 			escalas_similares = append(escalas_similares, escala_similar)
 		}
 	}
-	// Ordenar por similitud
-	sort.SliceStable(escalas_similares, func(i, j int) bool {
-		// return escalas_similares[i].Similitud > escalas_similares[j].Similitud
 
-		// Order by Similitud, Coincidencias
+	// Order by Similitud, Coincidencias
+	sort.SliceStable(escalas_similares, func(i, j int) bool {
 		ordenSimilitud := escalas_similares[i].Similitud > escalas_similares[j].Similitud
 		if escalas_similares[i].Similitud == escalas_similares[j].Similitud {
 			ordenCoincidencias := escalas_similares[i].NotasCoincidentes > escalas_similares[j].NotasCoincidentes
 			return ordenCoincidencias
 		}
 		return ordenSimilitud
-
-		// Order by Coincidencias, Similitud
-		// ordenCoincidencias := escalas_similares[i].NotasCoincidentes > escalas_similares[j].NotasCoincidentes
-		// if float32(escalas_similares[i].NotasCoincidentes) == float32(escalas_similares[j].NotasCoincidentes) {
-		// 	ordenSimilitud := escalas_similares[i].Similitud > escalas_similares[j].Similitud
-		// 	return ordenSimilitud
-		// }
-		// return ordenCoincidencias
 	})
 
 	return escalas_similares
