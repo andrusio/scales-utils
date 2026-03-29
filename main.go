@@ -8,213 +8,210 @@ import (
 	"strings"
 )
 
-var notas = [12]string{"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"}
+var chromatic = [12]string{"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"}
 
-type Escala struct {
-	Nota          string
-	Nombre        string
-	Intervalos    [7]string
-	CantidadNotas int
+type Scale struct {
+	Root      string
+	Name      string
+	Intervals [7]string
+	NoteCount int
 }
 
-type EscalaSimiliar struct {
-	Nota              string
-	Nombre            string
-	Notas             [7]string
-	NotasCoincidentes int
-	RatioNotas        string
-	Similitud         float32
-	NotasFaltantes    []string
+type SimilarScale struct {
+	Root             string
+	Name             string
+	Notes            [7]string
+	MatchPercent     int
+	MatchRatio       string
+	SimilarityPct    float32
+	MissingNotes     []string
 }
 
-var escalas = []Escala{
-	{Nombre: "Mayor", Intervalos: [7]string{"T", "T", "S", "T", "T", "T", "S"}, CantidadNotas: 7},
-	{Nombre: "Natural Menor", Intervalos: [7]string{"T", "S", "T", "T", "S", "T", "T"}, CantidadNotas: 7},
-	{Nombre: "Melódica Menor", Intervalos: [7]string{"T", "S", "T", "T", "T", "T", "S"}, CantidadNotas: 7},
-	{Nombre: "Harmónica Menor", Intervalos: [7]string{"T", "S", "T", "T", "S", "TS", "S"}, CantidadNotas: 7},
-	{Nombre: "Pentatónica Mayor", Intervalos: [7]string{"T", "T", "TS", "T", "TS"}, CantidadNotas: 5},
-	{Nombre: "Pentatónica Menor", Intervalos: [7]string{"TS", "T", "T", "TS", "T"}, CantidadNotas: 5},
+var scales = []Scale{
+    {Name: "Mayor / Jónico", Intervals: [7]string{"T", "T", "S", "T", "T", "T", "S"}, NoteCount: 7},
+    {Name: "Natural Menor / Eólico", Intervals: [7]string{"T", "S", "T", "T", "S", "T", "T"}, NoteCount: 7},
+    {Name: "Melódica Menor", Intervals: [7]string{"T", "S", "T", "T", "T", "T", "S"}, NoteCount: 7},
+    {Name: "Harmónica Menor", Intervals: [7]string{"T", "S", "T", "T", "S", "TS", "S"}, NoteCount: 7},
+    {Name: "Pentatónica Mayor", Intervals: [7]string{"T", "T", "TS", "T", "TS"}, NoteCount: 5},
+    {Name: "Pentatónica Menor", Intervals: [7]string{"TS", "T", "T", "TS", "T"}, NoteCount: 5},
+    {Name: "Enigmática", Intervals: [7]string{"S", "TS", "T", "T", "T", "S", "S"}, NoteCount: 7},
+    {Name: "Dórico", Intervals: [7]string{"T", "S", "T", "T", "T", "S", "T"}, NoteCount: 7},
+    {Name: "Frigio", Intervals: [7]string{"S", "T", "T", "T", "S", "T", "T"}, NoteCount: 7},
+    {Name: "Lidio", Intervals: [7]string{"T", "T", "T", "S", "T", "T", "S"}, NoteCount: 7},
+    {Name: "Mixolidio", Intervals: [7]string{"T", "T", "S", "T", "T", "S", "T"}, NoteCount: 7},
+    {Name: "Locrio", Intervals: [7]string{"S", "T", "T", "S", "T", "T", "T"}, NoteCount: 7},
+}
 
-	// Modos
-	// {Nombre: "Jónico (Modo)", Intervalos: [7]string{"T", "T", "S", "T", "T", "T", "S"}, CantidadNotas: 7},
-	// {Nombre: "Dórico (Modo)", Intervalos: [7]string{"T", "S", "T", "T", "T", "S", "T"}, CantidadNotas: 7},
-	// {Nombre: "Frigio (Modo)", Intervalos: [7]string{"S", "T", "T", "T", "S", "T", "T"}, CantidadNotas: 7},
-	// {Nombre: "Lidio (Modo)", Intervalos: [7]string{"T", "T", "T", "S", "T", "T", "S"}, CantidadNotas: 7},
-	// {Nombre: "Mixolidio (Modo)", Intervalos: [7]string{"T", "T", "T", "S", "T", "T", "S"}, CantidadNotas: 7},
-	// {Nombre: "Eólico (Modo)", Intervalos: [7]string{"T", "S", "T", "T", "S", "T", "T"}, CantidadNotas: 7},
-	// {Nombre: "Locrio (Modo)", Intervalos: [7]string{"S", "T", "T", "S", "T", "T", "T"}, CantidadNotas: 7},
-
-	{Nombre: "Enigmática", Intervalos: [7]string{"S", "TS", "T", "T", "T", "S", "S"}, CantidadNotas: 7},
+// intervalSteps maps interval notation to semitone count.
+var intervalSteps = map[string]int{
+	"TS": 3,
+	"T":  2,
+	"S":  1,
 }
 
 func main() {
-	var nota string
-	var escala_input string
-	var notas_buscar string
+	var root string
+	var scaleName string
+	var searchNotes string
 
-	flag.StringVar(&nota, "nota", "", "Nota usada para la escala")
-	flag.StringVar(&escala_input, "escala", "", "Escala a generar")
-	flag.StringVar(&notas_buscar, "notas", "", "Busca coincidencias de Escalas a partir de notas")
+	flag.StringVar(&root, "nota", "", "Nota raíz de la escala")
+	flag.StringVar(&scaleName, "escala", "", "Nombre de la escala a generar")
+	flag.StringVar(&searchNotes, "notas", "", "Notas separadas por coma para buscar escalas coincidentes")
 	flag.Parse()
 
-	if nota == "" && escala_input == "" && notas_buscar == "" {
+	if root == "" && scaleName == "" && searchNotes == "" {
 		flag.PrintDefaults()
-		fmt.Printf("\n Ejemplos: \n Generar una escala en particular: %s -nota C# -escala \"Natural Menor\" \n Búsqueda de escalas: %s -notas \"C,D,E,F,G\" \n", os.Args[0], os.Args[0])
+		fmt.Fprintf(os.Stderr, "\nEjemplos:\n  Generar escala: %s -nota C# -escala \"Natural Menor\"\n  Buscar escala:  %s -notas \"C,D,E,F,G\"\n", os.Args[0], os.Args[0])
 		return
 	}
 
-	// Genera escala con nota solicitada
-	if nota != "" || escala_input != "" {
-		// Comprobar nota valida
-		if indexOf(nota, notas[:]) < 0 {
-			fmt.Println("Nota no válida")
-			return
+	if root != "" || scaleName != "" {
+		if err := printScale(root, scaleName); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
 		}
-
-		// Comprobar escala valida
-		indice_escala := -1
-		for i, escala := range escalas {
-			if strings.EqualFold(escala.Nombre, escala_input) {
-				indice_escala = i
-				break
-			}
-		}
-		if indice_escala == -1 {
-			fmt.Println("Escala no válida. Seleccione alguna de las disponibles:")
-			for _, escala := range escalas {
-				fmt.Printf("- %s ", escala.Nombre)
-			}
-			fmt.Printf("-\n")
-			return
-		}
-		notas_escala := generar_escala(nota, escalas[indice_escala])
-		fmt.Println("\nNota seleccionada: ", nota)
-		fmt.Println("Escala seleccionada:", escalas[indice_escala].Nombre)
-		fmt.Println(notas_escala, "\n")
 		return
 	}
 
-	// Buscar escala similares o iguales con notas ingresadas
-	if notas_buscar != "" {
-		notas_encontrar := strings.Split(notas_buscar, ",")
-		escalas_similares := encontrar_escala(notas_encontrar)
-		for _, escala := range escalas_similares[0:10] {
-			linea := fmt.Sprintf("\n- %s %s %v \n   Coincidencias: %s (%d%%) | Similitud notas: %d%%  \n   Notas ingresadas no incluidas en la escala: %v \n\n",
-				escala.Nota, escala.Nombre, escala.Notas,
-				escala.RatioNotas, escala.NotasCoincidentes, int(escala.Similitud), escala.NotasFaltantes)
-			fmt.Print(linea)
-		}
+	if searchNotes != "" {
+		notes := strings.Split(searchNotes, ",")
+		results := findSimilarScales(notes)
+		printSimilarScales(results)
 	}
 }
 
-func encontrar_escala(notas_cancion []string) []EscalaSimiliar {
-	// Generar todas las escalas para comparar
-	escalas_todas := generar_escalas_todas()
-	// Buscar match's y guardar escalas similares
-	var escalas_similares []EscalaSimiliar
-	for _, escala := range escalas_todas {
-		// Determinar que coincidan notas
-		var notas_coincidencia []string
-		var notas_faltantes []string
+// printScale validates input and prints the generated scale.
+func printScale(root, scaleName string) error {
+	if indexOf(root, chromatic[:]) < 0 {
+		return fmt.Errorf("nota no válida: %q", root)
+	}
 
-		for _, nota := range notas_cancion {
-			if indexOf(nota, escala.Intervalos[:]) >= 0 {
-				if indexOf(nota, notas_coincidencia) == -1 {
-					notas_coincidencia = append(notas_coincidencia, nota)
+	scale, ok := findScaleByName(scaleName)
+	if !ok {
+		names := make([]string, len(scales))
+		for i, s := range scales {
+			names[i] = s.Name
+		}
+		return fmt.Errorf("escala no válida: %q\nEscalas disponibles: %s", scaleName, strings.Join(names, ", "))
+	}
+
+	notes := buildScale(root, scale)
+	fmt.Printf("\nNota: %s | Escala: %s\n%v\n\n", root, scale.Name, notes)
+	return nil
+}
+
+// findScaleByName performs a case-insensitive lookup of a scale by name.
+func findScaleByName(name string) (Scale, bool) {
+	for _, s := range scales {
+		if strings.EqualFold(s.Name, name) {
+			return s, true
+		}
+	}
+	return Scale{}, false
+}
+
+// findSimilarScales returns all scales ranked by similarity to the provided notes.
+func findSimilarScales(songNotes []string) []SimilarScale {
+	all := buildAllScales()
+
+	var results []SimilarScale
+	for _, scale := range all {
+		var matched, missing []string
+
+		for _, note := range songNotes {
+			if indexOf(note, scale.Intervals[:]) >= 0 {
+				if indexOf(note, matched) == -1 {
+					matched = append(matched, note)
 				}
 			} else {
-				notas_faltantes = append(notas_faltantes, nota)
+				missing = append(missing, note)
 			}
 		}
 
-		// Si hay al menos una coincidencia la agrega al return
-		if len(notas_coincidencia) > 0 {
-			var escala_similar EscalaSimiliar
-			escala_similar.Nota = escala.Nota
-			escala_similar.Nombre = escala.Nombre
-			escala_similar.NotasCoincidentes = len(notas_coincidencia) * 100 / escala.CantidadNotas
-			escala_similar.RatioNotas = fmt.Sprintf("%d/%d", len(notas_coincidencia), escala.CantidadNotas)
-			escala_similar.Similitud = float32(len(notas_coincidencia)) / float32(len(notas_cancion)) * 100
-			escala_similar.NotasFaltantes = notas_faltantes
-			escala_similar.Notas = escala.Intervalos
-			escalas_similares = append(escalas_similares, escala_similar)
+		if len(matched) == 0 {
+			continue
 		}
+
+		var notes [7]string
+		copy(notes[:], scale.Intervals[:])
+
+		results = append(results, SimilarScale{
+			Root:          scale.Root,
+			Name:          scale.Name,
+			Notes:         notes,
+			MatchPercent:  len(matched) * 100 / scale.NoteCount,
+			MatchRatio:    fmt.Sprintf("%d/%d", len(matched), scale.NoteCount),
+			SimilarityPct: float32(len(matched)) / float32(len(songNotes)) * 100,
+			MissingNotes:  missing,
+		})
 	}
 
-	// Order by Similitud, Coincidencias
-	sort.SliceStable(escalas_similares, func(i, j int) bool {
-		ordenSimilitud := escalas_similares[i].Similitud > escalas_similares[j].Similitud
-		if escalas_similares[i].Similitud == escalas_similares[j].Similitud {
-			ordenCoincidencias := escalas_similares[i].NotasCoincidentes > escalas_similares[j].NotasCoincidentes
-			return ordenCoincidencias
+	sort.SliceStable(results, func(i, j int) bool {
+		if results[i].SimilarityPct != results[j].SimilarityPct {
+			return results[i].SimilarityPct > results[j].SimilarityPct
 		}
-		return ordenSimilitud
+		return results[i].MatchPercent > results[j].MatchPercent
 	})
 
-	return escalas_similares
+	return results
 }
 
-// Generar todas las escalas de cada nota
-func generar_escalas_todas() []Escala {
-	var escalas_todas []Escala
-	for _, escala := range escalas {
-		for i := 0; i < len(notas); i++ {
-			var escala_generada Escala
-			var escala_generada_tipo [7]string
-			notas_escala := generar_escala(notas[i], escala)
-			for i, v := range notas_escala {
-				escala_generada_tipo[i] = v
-			}
-			escala_generada.Nota = notas[i]
-			escala_generada.Nombre = escala.Nombre
-			escala_generada.Intervalos = escala_generada_tipo
-			escala_generada.CantidadNotas = escala.CantidadNotas
-			escalas_todas = append(escalas_todas, escala_generada)
+// printSimilarScales prints the top 10 similar scale results.
+func printSimilarScales(results []SimilarScale) {
+	limit := 10
+	if len(results) < limit {
+		limit = len(results)
+	}
+	for _, s := range results[:limit] {
+		fmt.Printf(
+			"\n- %s %s %v\n   Coincidencias: %s (%d%%) | Similitud: %d%%\n   Notas no incluidas: %v\n",
+			s.Root, s.Name, s.Notes,
+			s.MatchRatio, s.MatchPercent, int(s.SimilarityPct), s.MissingNotes,
+		)
+	}
+}
+
+// buildAllScales generates every scale for each chromatic root note.
+func buildAllScales() []Scale {
+	all := make([]Scale, 0, len(scales)*len(chromatic))
+	for _, scale := range scales {
+		for _, root := range chromatic {
+			notes := buildScale(root, scale)
+			var intervals [7]string
+			copy(intervals[:], notes)
+
+			all = append(all, Scale{
+				Root:      root,
+				Name:      scale.Name,
+				Intervals: intervals,
+				NoteCount: scale.NoteCount,
+			})
 		}
 	}
-	return escalas_todas
+	return all
 }
 
-func generar_escala(nota string, escala Escala) []string {
-	var notas_escala []string
-	// Armando escala segun nota seleccionada
-	notas_escala = append(notas_escala, nota)
-	ultima_nota_index := indexOf(nota, notas[:])
-	for _, intervalo := range escala.Intervalos {
-		// Determina cuantos intervalos hay que saltar para la proxima nota
-		var intervalo_suma int
-		if intervalo == "TS" {
-			intervalo_suma = 3
-		} else if intervalo == "T" {
-			intervalo_suma = 2
-		} else {
-			intervalo_suma = 1
-		}
-		// Comienza la escala desde el principio en el caso de terminar/exceder las notas
-		var proximo_indice int
-		if ultima_nota_index+intervalo_suma >= len(notas) {
-			proximo_indice = ultima_nota_index + intervalo_suma - len(notas)
-		} else {
-			proximo_indice = ultima_nota_index + intervalo_suma
-		}
+// buildScale computes the notes of a scale starting from root.
+func buildScale(root string, scale Scale) []string {
+	notes := make([]string, 0, scale.NoteCount)
+	notes = append(notes, root)
 
-		nota_escala := notas[proximo_indice]
-		notas_escala = append(notas_escala, nota_escala)
-
-		// Guarda posición de la última nota para calcular la próxima iteración
-		ultima_nota_index = indexOf(nota_escala, notas[:])
+	idx := indexOf(root, chromatic[:])
+	for _, interval := range scale.Intervals[:scale.NoteCount-1] {
+		steps := intervalSteps[interval]
+		idx = (idx + steps) % len(chromatic)
+		notes = append(notes, chromatic[idx])
 	}
-	// Remueve la última nota que es la misma que la seleccionada
-	notas_escala = notas_escala[0 : len(notas_escala)-1]
-	return notas_escala[0:escala.CantidadNotas]
+
+	return notes
 }
 
+// indexOf returns the index of element in data, or -1 if not found.
 func indexOf(element string, data []string) int {
-	for k, v := range data {
-		if element == v {
-			return k
+	for i, v := range data {
+		if v == element {
+			return i
 		}
 	}
-	// no encontrado
 	return -1
 }
