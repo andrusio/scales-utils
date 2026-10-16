@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Identificador de escalas — Mástil</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <h1>Identificador de escalas</h1>
+    <p class="subtitle">Clickeá las notas en el mástil para ver qué escalas las contienen.</p>
+  </header>
+
+  <main>
+    <section id="controls" class="controls" aria-label="Configuración"></section>
+
+    <section class="io" aria-label="Configuración JSON">
+      <button type="button" id="export-btn">Exportar</button>
+      <button type="button" id="import-btn">Importar</button>
+      <input type="file" id="import-file" accept=".json,application/json" hidden>
+      <span id="io-error" class="error"></span>
+    </section>
+
+    <section class="board-wrap">
+      <div id="fretboard" class="fretboard" aria-label="Mástil"></div>
+    </section>
+
+    <section class="panels">
+      <div class="panel">
+        <h2>Escalas</h2>
+        <div id="results" class="results"></div>
+      </div>
+      <div class="panel">
+        <h2>Modos</h2>
+        <div id="modes" class="modes"></div>
+      </div>
+    </section>
+  </main>
+
+  <script src="src/scales.js"></script>
+  <script src="src/app.js"></script>
+</body>
+</html>
