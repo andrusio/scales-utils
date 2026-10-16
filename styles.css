@@ -1,0 +1,115 @@
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 1.5rem;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: #12151b;
+  color: #e6e9ef;
+}
+
+header { margin-bottom: 1rem; }
+h1 { margin: 0 0 .25rem; font-size: 1.4rem; }
+.subtitle { margin: 0; color: #9aa4b2; }
+
+main { max-width: 1100px; }
+
+.board-wrap {
+  overflow-x: auto;
+  padding: 1rem 0;
+}
+
+/* ---- Mástil ---- */
+.fretboard {
+  display: inline-block;
+  background: #1b1f27;
+  border: 1px solid #2b323d;
+  border-radius: 8px;
+  padding: .5rem;
+}
+
+.string-row { display: flex; border-bottom: 1px solid #2b323d; }
+
+.note {
+  width: 2.4rem;
+  height: 2.4rem;
+  line-height: 2.4rem;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: .8rem;
+  color: #e6e9ef;
+  opacity: 0.12;
+  cursor: pointer;
+  user-select: none;
+  border-right: 1px solid #232a34;
+  transition: opacity .08s ease, background-color .08s ease;
+}
+
+.note:hover { opacity: 0.45; }
+
+.note.selected {
+  opacity: 1;
+  background: #2b6cb0;
+  border-radius: 4px;
+  font-weight: 700;
+}
+
+/* Separador visual después de la cejilla (cuerda al aire) */
+.note[data-fret="0"] { border-right: 3px solid #3a4657; }
+
+/* ---- Paneles ---- */
+.panels {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.panel {
+  background: #1b1f27;
+  border: 1px solid #2b323d;
+  border-radius: 8px;
+  padding: .75rem 1rem;
+}
+
+.panel h2 { margin: 0 0 .5rem; font-size: 1rem; }
+
+.empty { color: #9aa4b2; font-size: .9rem; }
+
+.result {
+  padding: .5rem 0;
+  border-bottom: 1px solid #232a34;
+}
+.result:last-child { border-bottom: none; }
+
+.result .title { font-weight: 700; }
+.result .notes { font-family: ui-monospace, Menlo, Consolas, monospace; color: #cfd6e2; }
+.result .meta { font-size: .85rem; color: #9aa4b2; }
+.result .missing { color: #f0a35e; }
+
+/* ---- Modos ---- */
+.modes-block { margin-bottom: .75rem; }
+.modes-block .parent-name { font-weight: 700; }
+.mode {
+  display: inline-block;
+  margin: .15rem .25rem 0 0;
+  padding: .1rem .5rem;
+  border-radius: 999px;
+  background: #232a34;
+  font-size: .85rem;
+}
+.mode.is-parent { background: #2b6cb0; font-weight: 700; }
+
+/* ---- Controles (Task 7) ---- */
+.controls { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin-bottom: .5rem; }
+.controls label { font-size: .85rem; color: #9aa4b2; }
+.tuning-fields { display: flex; gap: .25rem; flex-wrap: wrap; }
+.tuning-input { width: 2.6rem; text-align: center; text-transform: uppercase; }
+#frets-input { width: 4rem; }
+.controls button { cursor: pointer; }
+.controls .error { color: #f06a6a; font-size: .85rem; flex-basis: 100%; }
+
+/* ---- Exportar / Importar (Task 8) ---- */
+.io { display: flex; gap: .5rem; align-items: center; margin-bottom: .5rem; }
+.io button { cursor: pointer; }
+.io .error { color: #f06a6a; font-size: .85rem; }
