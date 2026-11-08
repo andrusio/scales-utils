@@ -8,6 +8,9 @@
     selected: new Set(),
   };
 
+  // Cantidad de puntos de marca por traste (12 y sus octavas llevan doble punto).
+  const FRET_DOTS = { 3: 1, 5: 1, 7: 1, 9: 1, 12: 2 };
+
   const boardEl = document.getElementById('fretboard');
   const resultsEl = document.getElementById('results');
   const modesEl = document.getElementById('modes');
@@ -33,11 +36,35 @@
         cell.dataset.note = note;
         cell.dataset.string = String(row.tuningIndex);
         cell.dataset.fret = String(fret);
-        cell.textContent = note;
+        const label = document.createElement('span');
+        label.className = 'label';
+        label.textContent = note;
+        cell.appendChild(label);
         rowEl.appendChild(cell);
       }
       boardEl.appendChild(rowEl);
     }
+
+    // Fila inferior con números de traste y marcas (3, 5, 7, 9, 12 doble, ...).
+    const markers = document.createElement('div');
+    markers.className = 'fret-markers';
+    for (let fret = 0; fret <= state.config.frets; fret++) {
+      const m = document.createElement('div');
+      const dots = FRET_DOTS[fret % 12 === 0 && fret > 0 ? 12 : fret] || 0;
+      m.className = 'fret-marker' + (dots ? ' has-dot' : '');
+      m.dataset.fret = String(fret);
+      const dotsEl = document.createElement('div');
+      dotsEl.className = 'dots';
+      for (let i = 0; i < dots; i++) {
+        const d = document.createElement('span');
+        d.className = 'dot';
+        dotsEl.appendChild(d);
+      }
+      m.appendChild(dotsEl);
+      m.appendChild(document.createTextNode(String(fret)));
+      markers.appendChild(m);
+    }
+    boardEl.appendChild(markers);
   }
 
   // Lista de escalas que contienen las notas marcadas, en el orden del programa.
