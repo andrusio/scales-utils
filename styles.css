@@ -13,6 +13,8 @@
   --accent-soft: rgba(242, 180, 90, .14);
   --danger: #f07178;
   --warn: #f0a35e;
+  --ok: #5fd08a;
+  --ok-soft: rgba(95, 208, 138, .14);
   --radius: 14px;
   --shadow: 0 10px 30px rgba(0, 0, 0, .35);
   --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
@@ -47,21 +49,23 @@ h1 {
 section { margin-bottom: 1rem; }
 
 /* ---- Tarjetas ---- */
-.controls, .io, .panel {
+.controls, .panel {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
 }
 
-/* ---- Controles ---- */
+/* ---- Instrumento (afinación, trastes, guardar/cargar) ---- */
 .controls {
+  padding: .9rem 1.1rem;
+  margin-bottom: .75rem;
+}
+.controls-main {
   display: flex;
   flex-wrap: wrap;
   gap: .6rem 1rem;
   align-items: center;
-  padding: .9rem 1.1rem;
-  margin-bottom: .75rem;
 }
 .controls label { font-size: .8rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
 .tuning-fields { display: flex; gap: .35rem; flex-wrap: wrap; }
@@ -95,24 +99,26 @@ button {
 }
 button:hover { background: #262e3a; border-color: #3a4352; }
 button:active { transform: translateY(1px); }
-.controls button:nth-last-of-type(1) {
+button.primary {
   background: var(--accent);
   border-color: var(--accent);
   color: var(--accent-ink);
   font-weight: 600;
 }
-.controls button:nth-last-of-type(1):hover { filter: brightness(1.08); background: var(--accent); }
+button.primary:hover { filter: brightness(1.08); background: var(--accent); }
 
-.controls .error, .io .error { color: var(--danger); font-size: .85rem; }
-.controls .error { flex-basis: 100%; }
-.controls .error:empty, .io .error:empty { display: none; }
+.error { color: var(--danger); font-size: .85rem; }
+.controls-main .error { flex-basis: 100%; }
+.error:empty { display: none; }
 
 .io {
   display: flex;
+  flex-wrap: wrap;
   gap: .5rem;
   align-items: center;
-  padding: .6rem 1.1rem;
-  margin-bottom: 0;
+  margin-top: .8rem;
+  padding-top: .8rem;
+  border-top: 1px dashed var(--border);
 }
 
 /* ---- Mástil ---- */
@@ -266,6 +272,7 @@ button:active { transform: translateY(1px); }
 .result .notes { font-family: var(--mono); color: #c7cfdb; letter-spacing: .04em; margin: .1rem 0; }
 .result .meta { font-size: .82rem; color: var(--muted); }
 .result .missing { color: var(--warn); }
+.result.perfect { border-left-color: var(--ok); }
 
 /* ---- Modos ---- */
 .modes-block { margin-bottom: 1rem; }
@@ -282,8 +289,8 @@ button:active { transform: translateY(1px); }
   color: #c7cfdb;
 }
 .mode.is-parent {
-  background: var(--accent-soft);
-  border-color: var(--accent);
-  color: var(--accent);
+  background: var(--ok-soft);
+  border-color: var(--ok);
+  color: var(--ok);
   font-weight: 700;
 }

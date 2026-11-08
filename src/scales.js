@@ -44,7 +44,7 @@
   // Replica encontrar_escala de main.go: escalas (de las 12 raíces) que contienen
   // al menos una nota seleccionada, ordenadas por similitud y luego por el
   // porcentaje de coincidencias truncado.
-  function findScales(selected) {
+  function findScales(selected, limit = MAX_RESULTS) {
     const unique = [...new Set(selected)];
     if (unique.length === 0) return [];
 
@@ -73,7 +73,7 @@
       return b.coincidencePercent - a.coincidencePercent;
     });
 
-    return matches.slice(0, MAX_RESULTS);
+    return matches.slice(0, limit);
   }
 
   // Los 7 modos griegos del conjunto diatónico. El "ancla" es la tónica del

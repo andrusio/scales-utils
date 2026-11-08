@@ -156,3 +156,8 @@ test('Review Focus: trastes fuera de rango', () => {
   assert.strictEqual(validateConfig({ version: 1, tuning: ['E'], frets: MAX_FRETS + 1 }).ok, false);
   assert.strictEqual(validateConfig({ version: 1, tuning: ['E'], frets: 12 }).ok, true);
 });
+
+test('findScales: el límite es configurable', () => {
+  assert.strictEqual(findScales(['C']).length, MAX_RESULTS);
+  assert.ok(findScales(['C'], Infinity).length > MAX_RESULTS);
+});

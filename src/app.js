@@ -14,9 +14,9 @@
   const boardEl = document.getElementById('fretboard');
   const resultsEl = document.getElementById('results');
   const modesEl = document.getElementById('modes');
-  const controlsEl = document.getElementById('controls');
-  const exportBtn = document.getElementById('export-btn');
-  const importBtn = document.getElementById('import-btn');
+  const controlsEl = document.getElementById('controls-main');
+  const saveBtn = document.getElementById('save-btn');
+  const loadBtn = document.getElementById('load-btn');
   const importFile = document.getElementById('import-file');
   const ioError = document.getElementById('io-error');
 
@@ -81,7 +81,7 @@
 
     for (const m of Core.findScales(selected)) {
       const item = document.createElement('div');
-      item.className = 'result';
+      item.className = 'result' + (m.similarity === 100 ? ' perfect' : '');
 
       const title = document.createElement('div');
       title.className = 'title';
@@ -116,7 +116,10 @@
   // que coincidieron. No aparece si no hay escalas Mayor/Natural Menor.
   function renderModes() {
     modesEl.innerHTML = '';
-    const matched = Core.findScales([...state.selected]);
+    // Solo cuentan las escalas que contienen TODAS las notas marcadas (similitud 100%),
+    // sin el tope de resultados del panel de escalas.
+    const matched = Core.findScales([...state.selected], Infinity)
+      .filter(function (m) { return m.missing.length === 0; });
 
     const groups = new Map();
     for (const m of matched) {
@@ -205,6 +208,7 @@
 
     const applyBtn = document.createElement('button');
     applyBtn.type = 'button';
+    applyBtn.className = 'primary';
     applyBtn.textContent = 'Aplicar';
     applyBtn.addEventListener('click', function () { applyFromControls(); });
     controlsEl.appendChild(applyBtn);
@@ -271,7 +275,7 @@
     toggleNote(cell.dataset.note);
   });
 
-  // Exporta la configuración actual como archivo .json (descarga por Blob; funciona con file://).
+  // Guarda el instrumento actual como archivo .json (descarga por Blob; funciona con file://).
   function exportConfig() {
     const text = Core.serializeConfig(state.config);
     const blob = new Blob([text], { type: 'application/json' });
@@ -285,7 +289,7 @@
     URL.revokeObjectURL(url);
   }
 
-  // Lee un archivo .json y, si es válido, aplica la configuración. Nunca rompe: informa errores.
+  // Carga un instrumento desde un archivo .json y, si es válido, lo aplica. Nunca rompe: informa errores.
   function importConfig(file) {
     const reader = new FileReader();
     reader.onload = function () {
@@ -303,8 +307,8 @@
     reader.readAsText(file);
   }
 
-  exportBtn.addEventListener('click', exportConfig);
-  importBtn.addEventListener('click', function () { importFile.click(); });
+  saveBtn.addEventListener('click', exportConfig);
+  loadBtn.addEventListener('click', function () { importFile.click(); });
   importFile.addEventListener('change', function () {
     if (importFile.files && importFile.files[0]) importConfig(importFile.files[0]);
     importFile.value = '';

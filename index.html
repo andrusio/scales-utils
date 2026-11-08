@@ -13,13 +13,14 @@
   </header>
 
   <main>
-    <section id="controls" class="controls" aria-label="Configuración"></section>
-
-    <section class="io" aria-label="Configuración JSON">
-      <button type="button" id="export-btn">Exportar</button>
-      <button type="button" id="import-btn">Importar</button>
-      <input type="file" id="import-file" accept=".json,application/json" hidden>
-      <span id="io-error" class="error"></span>
+    <section id="controls" class="controls" aria-label="Instrumento">
+      <div id="controls-main" class="controls-main"></div>
+      <div class="io">
+        <button type="button" id="save-btn" title="Descarga la afinación y los trastes como archivo .json">Guardar instrumento</button>
+        <button type="button" id="load-btn" title="Carga una afinación guardada desde un archivo .json">Cargar instrumento</button>
+        <input type="file" id="import-file" accept=".json,application/json" hidden>
+        <span id="io-error" class="error"></span>
+      </div>
     </section>
 
     <section class="board-wrap">

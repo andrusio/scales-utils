@@ -1,70 +1,56 @@
-# Utilidad para Escalas Musicales
-Permite buscar escalas que contengan las notas ingresadas o generarlas en base a una nota.
-La función de búsqueda mostrará las escalas que coincidan con las notas ingresadas, asi como tambíen aquellas que sean similares indicando que nota no se encuentra en ella.
+# Utilidad para escalas musicales
 
-# Ejemplos uso
-- Generar una escala en particular:  
+Herramienta para encontrar escalas a partir de un conjunto de notas, en dos versiones:
+
+- **Web** (`index.html`): un mástil interactivo donde se marcan notas y se ven las escalas y modos que las contienen.
+- **CLI** (`main.go`): la versión original por línea de comandos, escrita en Go.
+
+## Versión web
+
+No requiere instalación ni servidor: abrí `index.html` en el navegador.
+
+- **Instrumento**: definí la afinación (una nota por cuerda, de grave a agudo), la cantidad de cuerdas y de trastes, y presioná *Aplicar*.
+- **Guardar / Cargar instrumento**: descarga la configuración actual como un archivo `.json` y permite volver a cargarla más tarde.
+- **Mástil**: clickeá las notas para marcarlas; se resaltan en todas las cuerdas y octavas.
+- **Escalas**: muestra las 10 escalas más parecidas a la selección. La tarjeta es **verde** si contiene todas las notas marcadas (similitud 100%) y **naranja** si falta alguna (se indican cuáles).
+- **Modos**: si hay escalas Mayor o Natural Menor que contienen todas las notas marcadas, se listan los 7 modos del mismo conjunto de notas y se resaltan en verde los que corresponden a esas escalas.
+
+Los tests de la lógica (`src/scales.js`) se ejecutan con Node 18+:
+
 ```bash
-$ go run main.go -nota C# -escala "natural menor"
-```
-```
-Nota seleccionada:  C#
-Escala seleccionada: Natural Menor
-[C# D# E F# G# A B] 
-
+node --test tests/scales.test.js
 ```
 
-- Búsqueda de escalas:  
+## Versión CLI
+
+Requiere Go 1.20+.
+
+Generar una escala a partir de una nota (el nombre de la escala no distingue mayúsculas; si es inválido se listan las disponibles):
 
 ```bash
-$ go run main.go -notas "C,D,E,F,G" 
+go run main.go -nota C# -escala "Natural Menor / Eólico"
 ```
 ```
-- C Mayor [C D E F G A B] 
-   Coincidencias: 5/7 (71%) | Similitud notas: 100%  
-   Notas ingresadas no incluidas en la escala: [] 
+Nota: C# | Escala: Natural Menor / Eólico
+[C# D# E F# G# A B]
+```
 
+Buscar escalas que contengan las notas dadas (muestra las 10 más similares):
 
-- F Mayor [F G A A# C D E] 
-   Coincidencias: 5/7 (71%) | Similitud notas: 100%  
-   Notas ingresadas no incluidas en la escala: [] 
+```bash
+go run main.go -notas "C,D,E,F,G"
+```
+```
+- C Mayor / Jónico [C D E F G A B]
+   Coincidencias: 5/7 (71%) | Similitud: 100%
+   Notas no incluidas: []
 
+- F Mayor / Jónico [F G A A# C D E]
+   Coincidencias: 5/7 (71%) | Similitud: 100%
+   Notas no incluidas: []
+...
+```
 
-- D Natural Menor [D E F G A A# C] 
-   Coincidencias: 5/7 (71%) | Similitud notas: 100%  
-   Notas ingresadas no incluidas en la escala: [] 
-
-
-- A Natural Menor [A B C D E F G] 
-   Coincidencias: 5/7 (71%) | Similitud notas: 100%  
-   Notas ingresadas no incluidas en la escala: [] 
-
-
-- F Melódica Menor [F G G# A# C D E] 
-   Coincidencias: 5/7 (71%) | Similitud notas: 100%  
-   Notas ingresadas no incluidas en la escala: [] 
-
-
-- F# Enigmática [F# G A# C D E F] 
-   Coincidencias: 5/7 (71%) | Similitud notas: 100%  
-   Notas ingresadas no incluidas en la escala: [] 
-
-
-- C Pentatónica Mayor [C D E G A  ] 
-   Coincidencias: 4/5 (80%) | Similitud notas: 80%  
-   Notas ingresadas no incluidas en la escala: [F] 
-
-
-- F Pentatónica Mayor [F G A C D  ] 
-   Coincidencias: 4/5 (80%) | Similitud notas: 80%  
-   Notas ingresadas no incluidas en la escala: [E] 
-
-
-- A# Pentatónica Mayor [A# C D F G  ] 
-   Coincidencias: 4/5 (80%) | Similitud notas: 80%  
-   Notas ingresadas no incluidas en la escala: [E] 
-
-
-- D Pentatónica Menor [D F G A C  ] 
-   Coincidencias: 4/5 (80%) | Similitud notas: 80%  
-   Notas ingresadas no incluidas en la escala: [E] 
+- **Coincidencias**: cuántas notas de la escala están en la selección.
+- **Similitud**: qué porcentaje de las notas ingresadas pertenece a la escala.
+- **Notas no incluidas**: notas ingresadas que la escala no tiene.
