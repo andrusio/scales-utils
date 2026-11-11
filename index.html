@@ -3,16 +3,20 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Identificador de escalas — Mástil</title>
+  <title>Utilidad de escalas</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <header>
-    <h1>Identificador de escalas</h1>
-    <p class="subtitle">Clickeá las notas en el mástil para ver qué escalas las contienen.</p>
+    <h1>Utilidad de escalas</h1>
+    <nav class="tabs" role="tablist" aria-label="Herramientas">
+      <button type="button" role="tab" id="tab-scales" data-view="scales" aria-controls="view-scales" aria-selected="true">Identificador de escalas</button>
+      <button type="button" role="tab" id="tab-circle" data-view="circle" aria-controls="view-circle" aria-selected="false">Círculo de quintas</button>
+    </nav>
+    <p class="subtitle" id="subtitle"></p>
   </header>
 
-  <main>
+  <main id="view-scales" role="tabpanel" aria-labelledby="tab-scales">
     <section id="controls" class="controls" aria-label="Instrumento">
       <div id="controls-main" class="controls-main"></div>
       <div class="io">
@@ -39,7 +43,46 @@
     </section>
   </main>
 
+  <main id="view-circle" role="tabpanel" aria-labelledby="tab-circle" hidden>
+    <div class="circle-layout">
+      <section class="panel wheel-card">
+        <div class="wheel-toolbar">
+          <button type="button" id="rot-left" aria-label="Girar una posición a la izquierda">◀</button>
+          <span class="wheel-hint">Arrastrá el círculo, tocá una tonalidad o usá las flechas</span>
+          <button type="button" id="rot-right" aria-label="Girar una posición a la derecha">▶</button>
+        </div>
+        <svg id="wheel" viewBox="-420 -420 840 840" role="img" aria-label="Círculo de quintas"><g id="disc"></g></svg>
+        <p id="wheel-note" class="wheel-note" aria-live="polite"></p>
+      </section>
+
+      <div class="circle-side">
+        <section class="panel">
+          <h2>Nota fundamental</h2>
+          <div id="root-grid" class="note-grid"></div>
+          <div id="root-quality" class="seg" role="group" aria-label="Calidad de la raíz"></div>
+        </section>
+
+        <section class="panel">
+          <h2>Acordes de la canción</h2>
+          <div id="chord-grid" class="note-grid"></div>
+          <div id="chord-quality" class="seg" role="group" aria-label="Tipo de acorde"></div>
+          <div id="chord-chips" class="chips"></div>
+          <div id="chord-keys" class="keys"></div>
+        </section>
+      </div>
+    </div>
+
+    <section class="panel modes-panel">
+      <h2>Modos de <span id="modes-root"></span></h2>
+      <p class="modes-lead" id="modes-lead"></p>
+      <div id="circle-modes" class="mode-table"></div>
+    </section>
+  </main>
+
   <script src="src/scales.js"></script>
   <script src="src/app.js"></script>
+  <script src="src/circle.js"></script>
+  <script src="src/circle-app.js"></script>
+  <script src="src/tabs.js"></script>
 </body>
 </html>
