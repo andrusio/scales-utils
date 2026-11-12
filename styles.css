@@ -355,7 +355,8 @@ button.primary:hover { filter: brightness(1.08); background: var(--accent); }
   -webkit-user-select: none;
 }
 #wheel:active { cursor: grabbing; }
-.wheel-note { margin: .3rem 0 0; min-height: 1.2em; color: var(--warn); font-size: .85rem; text-align: center; }
+.wheel-note:empty { display: none; }
+.wheel-note { margin: .3rem 0 0; color: var(--warn); font-size: .85rem; text-align: center; }
 
 #wheel text { text-anchor: middle; dominant-baseline: central; pointer-events: none; font-family: system-ui, sans-serif; }
 .wc path { fill: var(--cell); stroke: #0b0e13; stroke-width: 1.5; transition: fill .15s; }
@@ -369,25 +370,24 @@ button.primary:hover { filter: brightness(1.08); background: var(--accent); }
 .wc.sel .wc-name { fill: var(--accent); opacity: 1; }
 .wc.out path { stroke: var(--danger); }
 .wc.out .wc-name { fill: var(--danger); }
-.wc-num { font-size: 15px; font-weight: 700; }
+.wc-num { font-size: 18px; font-weight: 700; }
 .wc-num.green { fill: var(--ok); }
 .wc-num.pink { fill: var(--pink); }
-.wc-fn { font-size: 11px; fill: var(--muted); letter-spacing: .04em; }
-.wc.dim .wc-num { font-size: 12px; }
+.wc-fn { font-size: 13px; fill: var(--muted); letter-spacing: .04em; }
+.wc.dim .wc-num { font-size: 14px; }
 
 .hub { fill: var(--surface); stroke: var(--border); stroke-width: 2; }
-.hub-name { font-size: 40px; font-weight: 700; fill: var(--accent); }
-.hub-small { font-size: 13px; fill: var(--muted); }
+.hub-name { font-size: 46px; font-weight: 700; fill: var(--accent); }
+.hub-small { font-size: 15px; fill: var(--muted); }
 .window-mark { fill: none; stroke: var(--accent); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
 
 .tag rect { fill: #f7f1de; stroke: #b9ab80; stroke-width: 1; }
-.tag-name { font-size: 14px; font-weight: 700; fill: #20242c; }
-.tag-hint { font-size: 12px; fill: #4a4f5a; font-style: italic; }
+.tag-name { font-size: 16px; font-weight: 700; fill: #20242c; }
+.tag-hint { font-size: 13px; fill: #4a4f5a; font-style: italic; }
 .tag.principal rect { fill: #cdeed9; stroke: var(--ok); stroke-width: 2; }
 
 .circle-side { display: flex; flex-direction: column; gap: 1rem; }
-.circle-side .panel, .modes-panel { margin-bottom: 0; }
-.modes-panel { margin-top: 1rem; }
+.circle-side .panel { margin-bottom: 0; }
 
 .note-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: .35rem; }
 .note-btn {
@@ -428,26 +428,22 @@ button.primary:hover { filter: brightness(1.08); background: var(--accent); }
 .keys-head.warn { color: var(--warn); }
 .key-btn.active { background: var(--ok-soft); border-color: var(--ok); color: var(--ok); font-weight: 600; }
 
-.modes-lead { margin: 0 0 .7rem; color: var(--muted); font-size: .9rem; }
-.mode-table { display: flex; flex-direction: column; gap: .3rem; }
-.mt-row {
-  display: grid;
-  grid-template-columns: 1.1fr 1.2fr 1.6fr;
-  gap: .6rem;
-  padding: .45rem .7rem;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  align-items: center;
+/* ---- Móvil / pantallas angostas: el círculo queda fijo arriba y ocupa todo el ancho ---- */
+@media (max-width: 900px) {
+  .wheel-card {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    padding: .25rem .4rem .35rem;
+    box-shadow: 0 8px 18px rgba(0, 0, 0, .55);
+  }
+  .wheel-hint { display: none; }
+  .wheel-toolbar { position: absolute; inset: auto .4rem .4rem .4rem; justify-content: space-between; pointer-events: none; z-index: 1; }
+  .wheel-toolbar button { pointer-events: auto; padding: .5rem .85rem; background: rgba(22, 27, 35, .85); }
+  #wheel { max-height: 52vh; max-height: 52dvh; }
 }
-.mt-row.mt-head { background: transparent; border-color: transparent; color: var(--muted); font-size: .75rem; text-transform: uppercase; letter-spacing: .07em; padding-block: 0; }
-.mt-row.principal { background: var(--ok-soft); border-color: var(--ok); }
-.mt-mode { font-weight: 700; }
-.mt-parent { font-family: var(--mono); }
-.mt-how { color: #c7cfdb; font-size: .9rem; }
-.mt-how strong { color: var(--accent); }
-@media (max-width: 640px) {
-  .mt-row { grid-template-columns: 1fr 1fr; }
-  .mt-row.mt-head span:last-child { display: none; }
-  .mt-how { grid-column: 1 / -1; }
+@media (max-width: 760px) {
+  body:has(#view-circle:not([hidden])) { padding-inline: .5rem; }
+  .wheel-card { border-radius: 10px; }
+  .note-btn { padding: .6rem .1rem; }
 }

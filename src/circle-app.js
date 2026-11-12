@@ -5,11 +5,11 @@
 
   // Radios (en unidades del viewBox) de cada anillo del disco.
   const RING = {
-    major: { r1: 225, r2: 300, size: 26, alias: 12 },
-    minor: { r1: 160, r2: 225, size: 20, alias: 11 },
-    dim:   { r1: 110, r2: 160, size: 15, alias: 10 },
+    major: { r1: 225, r2: 300, size: 30, alias: 14 },
+    minor: { r1: 160, r2: 225, size: 23, alias: 13 },
+    dim:   { r1: 110, r2: 160, size: 17, alias: 11 },
   };
-  const TAG_RADIUS = 352;
+  const TAG_RADIUS = 335;
   const STEP = 30; // grados por posición
 
   const state = {
@@ -34,9 +34,6 @@
     chordQuality: document.getElementById('chord-quality'),
     chips: document.getElementById('chord-chips'),
     keys: document.getElementById('chord-keys'),
-    modesRoot: document.getElementById('modes-root'),
-    modesLead: document.getElementById('modes-lead'),
-    modes: document.getElementById('circle-modes'),
   };
 
   const mod = C.mod;
@@ -123,8 +120,8 @@
       const hint = m.hint.degree + (m.hint.adj ? ' ' + adjText(m.hint.adj) : '');
       const cls = 'tag' + (m.name === principal ? ' principal' : '');
       return '<g class="' + cls + '" transform="translate(' + f(p[0]) + ' ' + f(p[1]) + ')">' +
-        '<rect x="-47" y="-19" width="94" height="38" rx="9"/>' +
-        '<text class="tag-name" y="-3">' + m.name + '</text>' +
+        '<rect x="-46" y="-22" width="92" height="44" rx="9"/>' +
+        '<text class="tag-name" y="-5">' + m.name + '</text>' +
         '<text class="tag-hint" y="12">' + hint + '</text></g>';
     }).join('');
   }
@@ -147,7 +144,7 @@
     s += tagsSvg();
     s += hubSvg();
     // Marca de la "ventana" fija arriba (IV · I · V)
-    s += '<path class="window-mark" d="M-14 -318 L0 -308 L14 -318" />';
+    s += '<path class="window-mark" d="M-10 -311 L0 -303 L10 -311" />';
     el.disc.innerHTML = s;
   }
 
@@ -377,31 +374,12 @@
     }
   }
 
-  function renderModes() {
-    el.modesRoot.textContent = rootLabel();
-    el.modesLead.innerHTML = 'Cada modo de <strong>' + rootLabel() + '</strong> usa las notas de una escala mayor. ' +
-      'En el círculo, los papelitos están junto a esa escala.';
-    const principal = state.quality === 'minor' ? 'Eólico' : 'Jónico';
-    let html = '<div class="mt-row mt-head"><span>Modo</span><span>Tocar la escala mayor de</span><span>Cómo encontrarlo en el círculo</span></div>';
-    C.modesOfRoot(state.root).forEach(function (m) {
-      const h = m.hint;
-      let how = h.degree + ' <span class="alias">(' + noteHtml(h.degreePc) + ')</span>';
-      if (h.adj) how += ' <strong>' + adjText(h.adj) + '</strong> → ' + noteHtml(m.parent);
-      html += '<div class="mt-row' + (m.name === principal ? ' principal' : '') + '">' +
-        '<span class="mt-mode">' + C.NAMES[state.root] + ' ' + m.name + '</span>' +
-        '<span class="mt-parent">' + noteHtml(m.parent) + ' mayor</span>' +
-        '<span class="mt-how">' + how + '</span></div>';
-    });
-    el.modes.innerHTML = html;
-  }
-
   function renderPanels() {
     noteGrid(el.rootGrid, setRoot, function (pc) { return pc === state.root; });
     seg(el.rootQuality,
       [{ value: 'major', label: 'Mayor' }, { value: 'minor', label: 'menor' }],
       state.quality, setRootQuality);
     renderChords();
-    renderModes();
   }
 
   function render() {
