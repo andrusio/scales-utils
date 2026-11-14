@@ -15,6 +15,14 @@ No requiere instalación ni servidor: abrí `index.html` en el navegador.
 - **Escalas**: muestra las 10 escalas más parecidas a la selección. La tarjeta es **verde** si contiene todas las notas marcadas (similitud 100%) y **naranja** si falta alguna (se indican cuáles).
 - **Modos**: si hay escalas Mayor o Natural Menor que contienen todas las notas marcadas, se listan los 7 modos del mismo conjunto de notas y se resaltan en verde los que corresponden a esas escalas.
 
+### Identificador de acordes
+
+Pestaña del medio (también se abre con `index.html#acordes`). Usa el mismo instrumento que el identificador de escalas.
+
+- **Mástil**: tocá las posiciones del acorde (podés marcar varias por cuerda; tocá de nuevo para quitar). La nota más grave define el bajo.
+- **Acorde**: muestra el nombre (tríadas, séptimas, sextas, sus, add9, novenas...), cada nota con su intervalo (*C tónica, E tercera mayor, G quinta justa*) y la inversión si el bajo no es la tónica (`C/E`). Si las mismas notas admiten otra lectura (C6 = Am7/C) se puede elegir. Con dos notas muestra el intervalo y los acordes posibles.
+- **Guardar acorde** arma una lista temporal; **Mostrar en círculo de quintas** la carga en el círculo. Allí cada acorde se ubica por su tríada (G7 → G, Bm7b5 → B°); los sus, aumentados y power chords no tienen lugar en el círculo y se avisa.
+
 ### Círculo de quintas
 
 Segunda pestaña de la versión web (también se abre con `index.html#circulo`).
@@ -25,10 +33,10 @@ Segunda pestaña de la versión web (también se abre con `index.html#circulo`).
 - **Giro a mano** (arrastrar, tocar una tonalidad o las flechas): mueve el disco y **borra los acordes cargados**.
 - **En el celular** el círculo queda fijo arriba mientras se scrollea a los selectores.
 
-Los tests de la lógica (`src/scales.js` y `src/circle.js`) se ejecutan con Node 18+:
+Los tests de la lógica (`src/scales.js`, `src/circle.js` y `src/chords.js`) se ejecutan con Node 18+:
 
 ```bash
-node --test tests/scales.test.js tests/circle.test.js
+node --test tests/scales.test.js tests/circle.test.js tests/chords.test.js
 ```
 
 ## Versión CLI

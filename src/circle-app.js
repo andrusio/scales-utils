@@ -390,9 +390,23 @@
 
   render();
 
+  // Reemplaza los acordes cargados (p. ej. desde el identificador de acordes) y
+  // gira el círculo hacia su tonalidad. `note` es un aviso opcional bajo el disco.
+  function setChords(chords, note) {
+    state.chords = [];
+    chords.forEach(function (c) {
+      if (!isSelected(c)) state.chords.push({ root: c.root, quality: c.quality });
+    });
+    el.note.textContent = note || '';
+    if (state.chords.length) applySuggestion();
+    else drawWheel();
+    renderPanels();
+  }
+
   window.circleApp = {
     state: state,
     render: render,
+    setChords: setChords,
     toggleChord: toggleChord,
     setRoot: setRoot,
     manualCenter: manualCenter,

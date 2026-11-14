@@ -11,6 +11,7 @@
     <h1>Utilidad de escalas</h1>
     <nav class="tabs" role="tablist" aria-label="Herramientas">
       <button type="button" role="tab" id="tab-scales" data-view="scales" aria-controls="view-scales" aria-selected="true">Identificador de escalas</button>
+      <button type="button" role="tab" id="tab-chords" data-view="chords" aria-controls="view-chords" aria-selected="false">Identificador de acordes</button>
       <button type="button" role="tab" id="tab-circle" data-view="circle" aria-controls="view-circle" aria-selected="false">Círculo de quintas</button>
     </nav>
     <p class="subtitle" id="subtitle"></p>
@@ -39,6 +40,34 @@
       <div class="panel">
         <h2>Modos</h2>
         <div id="modes" class="modes"></div>
+      </div>
+    </section>
+  </main>
+
+  <main id="view-chords" role="tabpanel" aria-labelledby="tab-chords" hidden>
+    <p class="instrument-line">
+      <span id="chord-instrument"></span>
+      <button type="button" class="link-btn" id="chord-edit-instrument">Cambiar instrumento</button>
+      <button type="button" class="link-btn" id="chord-clear-board">Limpiar mástil</button>
+    </p>
+
+    <section class="board-wrap">
+      <div id="chord-fretboard" class="fretboard" aria-label="Mástil para armar acordes"></div>
+    </section>
+
+    <section class="panels">
+      <div class="panel">
+        <h2>Acorde</h2>
+        <div id="chord-result" class="chord-result"></div>
+      </div>
+      <div class="panel">
+        <h2>Acordes guardados</h2>
+        <div id="saved-chords" class="chips"></div>
+        <div class="chord-actions">
+          <button type="button" class="primary" id="to-circle">Mostrar en círculo de quintas</button>
+          <button type="button" id="saved-clear">Vaciar lista</button>
+        </div>
+        <p id="saved-note" class="keys-head warn" aria-live="polite"></p>
       </div>
     </section>
   </main>
@@ -74,9 +103,12 @@
   </main>
 
   <script src="src/scales.js"></script>
+  <script src="src/fretboard.js"></script>
   <script src="src/app.js"></script>
   <script src="src/circle.js"></script>
   <script src="src/circle-app.js"></script>
+  <script src="src/chords.js"></script>
+  <script src="src/chords-app.js"></script>
   <script src="src/tabs.js"></script>
 </body>
 </html>
