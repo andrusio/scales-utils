@@ -583,3 +583,123 @@ button:disabled { opacity: .45; cursor: not-allowed; }
   box-shadow: 0 0 0 2px rgba(0, 0, 0, .25), 0 3px 8px rgba(95, 208, 138, .5);
 }
 #chord-instrument:empty { display: none; }
+
+/* ---- Sonido (cabecera) ---- */
+.sound-btn[aria-pressed="false"] { color: var(--muted); }
+
+/* ---- Selects ---- */
+select {
+  font: inherit;
+  font-size: .9rem;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: .4rem .5rem;
+}
+select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* ---- Visor de escalas ---- */
+.viewer { margin-bottom: .75rem; }
+.viewer-row { display: flex; flex-wrap: wrap; gap: .5rem .6rem; align-items: center; }
+.viewer-row h2 { margin: 0 .4rem 0 0; }
+.viewer-opts { margin-top: .6rem; }
+.viewer-opts .seg { margin-top: 0; }
+.seg.wrap { flex-wrap: wrap; }
+.view-info { margin-top: .8rem; }
+.view-notes { display: flex; flex-wrap: wrap; gap: .35rem; }
+.view-note {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 2.6rem;
+  padding: .3rem .4rem;
+  border-radius: 8px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  font-family: var(--mono);
+}
+.view-note small { color: var(--muted); font-size: .72rem; }
+.view-note.is-root { border-color: var(--ok); background: var(--ok-soft); }
+.view-hint { margin: .5rem 0 0; color: var(--muted); font-size: .88rem; }
+.view-hint strong { color: var(--text); }
+
+/* ---- Botones chicos y resultados ---- */
+.mini-btn { padding: .2rem .55rem; font-size: .8rem; }
+.result-head { display: flex; justify-content: space-between; align-items: center; gap: .5rem; }
+.result-actions { display: flex; gap: .3rem; }
+button.mode { cursor: pointer; font: inherit; font-size: .82rem; }
+button.mode:hover { border-color: var(--accent); }
+
+/* ---- Acordes guardados: herramientas ---- */
+.tool-group { display: inline-flex; align-items: center; gap: .3rem; color: var(--muted); font-size: .85rem; }
+.capo-row { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin-top: .7rem; font-size: .88rem; color: var(--muted); }
+.capo-row label { text-transform: uppercase; letter-spacing: .06em; font-size: .75rem; }
+.capo-shapes strong { color: var(--accent); font-family: var(--mono); }
+.sub-head { margin: 1.1rem 0 .4rem; font-size: .78rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.scale-sugs { display: flex; flex-direction: column; gap: .3rem; }
+.sug-row {
+  display: grid;
+  grid-template-columns: auto auto 1fr auto;
+  gap: .5rem;
+  align-items: center;
+  padding: .4rem .6rem;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.sug-chord { font-family: var(--mono); font-weight: 700; color: var(--accent); }
+.sug-arrow { color: var(--muted); }
+.sug-scale { display: flex; flex-direction: column; }
+.sug-scale small { color: var(--muted); font-size: .75rem; }
+.sug-actions { display: flex; gap: .25rem; }
+
+/* ---- Círculo: acordes de la tonalidad y progresiones ---- */
+.key-chords { display: grid; grid-template-columns: repeat(7, 1fr); gap: .3rem; margin-top: .6rem; }
+.deg-btn { display: flex; flex-direction: column; align-items: center; padding: .35rem .1rem; font-family: var(--mono); font-size: .82rem; }
+.deg-btn small { color: var(--ok); font-size: .7rem; }
+@media (max-width: 480px) { .key-chords { grid-template-columns: repeat(4, 1fr); } }
+.progressions { display: flex; flex-direction: column; gap: .3rem; }
+.prog-row {
+  display: grid;
+  grid-template-columns: 8.5rem 1fr auto;
+  gap: .5rem;
+  align-items: center;
+  padding: .4rem .6rem;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: .88rem;
+}
+.prog-name { display: flex; flex-direction: column; font-weight: 600; }
+.prog-name small { font-weight: 400; color: var(--ok); font-family: var(--mono); font-size: .72rem; }
+.prog-chords { font-family: var(--mono); color: #c7cfdb; }
+.prog-actions { display: flex; gap: .25rem; }
+@media (max-width: 480px) {
+  .prog-row { grid-template-columns: 1fr auto; }
+  .prog-chords { grid-column: 1 / -1; grid-row: 2; }
+}
+#circle-share { margin-top: .5rem; }
+
+/* ---- Práctica ---- */
+.practice .ex-prompt, .practice .ex-options { max-width: 760px; }
+.ex-score { margin: .8rem 0 0; color: var(--muted); font-size: .88rem; min-height: 1.2em; }
+.ex-prompt { font-size: 1.35rem; font-weight: 700; margin: .4rem 0 .8rem; }
+.ex-options { display: grid; grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr)); gap: .4rem; margin-top: .9rem; }
+.ex-opt { padding: .6rem .5rem; }
+.ex-opt.right { background: var(--ok-soft); border-color: var(--ok); color: var(--ok); font-weight: 700; }
+.ex-opt.wrong { background: rgba(240, 113, 120, .12); border-color: var(--danger); color: var(--danger); }
+.ex-feedback { min-height: 1.3em; margin: .9rem 0 0; }
+.ex-feedback.ok { color: var(--ok); }
+.ex-feedback.bad { color: var(--warn); }
+#ex-board-wrap { padding-top: .5rem; }
+
+/* Pestañas en una línea que se desliza en pantallas angostas */
+.tabs { overflow-x: auto; scrollbar-width: none; }
+.tabs::-webkit-scrollbar { display: none; }
+.tabs [role="tab"] { flex: 0 0 auto; white-space: nowrap; }
+.sound-btn { white-space: nowrap; }
+@media (max-width: 760px) {
+  .tabs [role="tab"] { padding: .55rem .7rem; font-size: .88rem; }
+  .mode-select { flex-wrap: wrap; }
+}

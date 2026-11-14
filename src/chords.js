@@ -1,7 +1,7 @@
 (function (root, factory) {
-  if (typeof module === 'object' && module.exports) module.exports = factory();
-  else root.ChordsCore = factory();
-})(typeof self !== 'undefined' ? self : this, function () {
+  if (typeof module === 'object' && module.exports) module.exports = factory(require('./spelling.js'));
+  else root.ChordsCore = factory(root.Spelling);
+})(typeof self !== 'undefined' ? self : this, function (Spelling) {
   'use strict';
 
   const NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
@@ -89,14 +89,17 @@
   }
 
   // Una "lectura" del acorde: tónica + tipo, con cada nota y su intervalo.
+  // Los nombres se escriben según el acorde (Bb D F, no A# D F).
   function makeReading(root, variant, bassPc, missing) {
     const miss = missing || [];
-    const tones = variant.type.tones.map(function (d) {
+    const sp = Spelling.spell(root, variant.type.tones);
+    const tones = variant.type.tones.map(function (d, i) {
       const omitted = variant.omitted.indexOf(d) >= 0;
       const isMissing = miss.indexOf(d) >= 0;
       return {
         degree: d,
         pc: mod(root + DEGREE_SEMIS[d]),
+        name: sp.notes[i],
         interval: DEGREE_NAMES[d],
         present: !omitted && !isMissing,
         omitted: omitted,
@@ -104,20 +107,23 @@
       };
     });
     const bassTone = tones.filter(function (t) { return t.present && t.pc === bassPc; })[0];
-    const base = NAMES[root] + variant.type.suffix;
+    const base = sp.root + variant.type.suffix;
+    const bassName = bassTone ? bassTone.name : Spelling.SHARPS[bassPc];
     return {
       root: root,
+      rootName: sp.root,
       typeId: variant.type.id,
       typeName: variant.type.name,
       suffix: variant.type.suffix,
       triad: variant.type.triad,
       baseLabel: base,
-      label: bassPc !== root ? base + '/' + NAMES[bassPc] : base,
+      label: bassPc !== root ? base + '/' + bassName : base,
       bass: bassPc,
       inversion: inversionText(bassTone ? bassTone.degree : null),
       tones: tones,
       noFifth: variant.omitted.length > 0,
       missing: miss.map(function (d) { return mod(root + DEGREE_SEMIS[d]); }),
+      missingNames: tones.filter(function (t) { return t.missing; }).map(function (t) { return t.name; }),
       rank: variant.rank,
     };
   }
@@ -187,8 +193,67 @@
     return out;
   }
 
+  function typeById(id) {
+    return TYPES.filter(function (t) { return t.id === id; })[0] || null;
+  }
+
+  // Acorde a partir de tónica, tipo y bajo (para transportar o rearmar lecturas).
+  function chordInfo(root, typeId, bassPc) {
+    const type = typeById(typeId);
+    const bass = bassPc === undefined || bassPc === null ? root : mod(bassPc);
+    return makeReading(mod(root), { type: type, omitted: [], rank: 0 }, bass);
+  }
+
+  // Alturas de un acorde en posición cerrada desde `base` (para escucharlo).
+  function chordPitches(root, typeId, bassPc, base) {
+    const type = typeById(typeId);
+    const b = base === undefined ? 48 : base;
+    const semis = type.tones.map(function (d) { return DEGREE_SEMIS[d] + (d === '9' ? 12 : 0); });
+    const rootPitch = b + mod(root - b);
+    const out = semis.map(function (x) { return rootPitch + x; });
+    if (bassPc !== undefined && bassPc !== null && mod(bassPc) !== mod(root)) {
+      out.unshift(rootPitch - 12 + mod(bassPc - root));
+    }
+    return out;
+  }
+
+  // Qué escala tocar sobre un acorde. Con tonalidad (`key`, mayor) y si el acorde
+  // es diatónico, el modo de su grado (ii → dórico, V → mixolidio...). Si no, una
+  // escala típica según el tipo de acorde.
+  const DIATONIC = [
+    { offset: 0,  triad: 'major', numeral: 'I',    scale: 'Jónico' },
+    { offset: 2,  triad: 'minor', numeral: 'ii',   scale: 'Dórico' },
+    { offset: 4,  triad: 'minor', numeral: 'iii',  scale: 'Frigio' },
+    { offset: 5,  triad: 'major', numeral: 'IV',   scale: 'Lidio' },
+    { offset: 7,  triad: 'major', numeral: 'V',    scale: 'Mixolidio' },
+    { offset: 9,  triad: 'minor', numeral: 'vi',   scale: 'Eólico' },
+    { offset: 11, triad: 'dim',   numeral: 'vii°', scale: 'Locrio' },
+  ];
+  const BY_TYPE = {
+    maj: 'Jónico', '6': 'Jónico', maj7: 'Jónico', add9: 'Jónico', maj9: 'Jónico',
+    '7': 'Mixolidio', '9': 'Mixolidio', sus4: 'Mixolidio', sus2: 'Mixolidio', '7sus4': 'Mixolidio',
+    min: 'Dórico', m7: 'Dórico', m9: 'Dórico', m6: 'Dórico', madd9: 'Dórico',
+    mmaj7: 'Menor melódica', dim: 'Locrio', m7b5: 'Locrio',
+    dim7: 'Disminuida (tono-semitono)', aug: 'Tonos enteros', '7#5': 'Tonos enteros',
+    '5': 'Pentatónica menor',
+  };
+
+  function chordScale(root, typeId, key) {
+    const type = typeById(typeId);
+    if (key !== null && key !== undefined && type.triad) {
+      const d = DIATONIC.filter(function (x) { return mod(root - key) === x.offset && x.triad === type.triad; })[0];
+      // Las séptimas tienen que coincidir con la tonalidad: C7 en C mayor no es diatónico.
+      const seventhOk = !(d && ((typeId === '7' && d.numeral !== 'V') || (typeId === 'maj7' && d.numeral !== 'I' && d.numeral !== 'IV')));
+      if (d && seventhOk) {
+        return { root: root, scale: d.scale, numeral: d.numeral, diatonic: true };
+      }
+    }
+    return { root: root, scale: BY_TYPE[typeId] || 'Jónico', numeral: null, diatonic: false };
+  }
+
   return {
     NAMES: NAMES, DEGREE_NAMES: DEGREE_NAMES, INTERVAL_NAMES: INTERVAL_NAMES, TYPES: TYPES,
     identify: identify, openPitches: openPitches,
+    typeById: typeById, chordInfo: chordInfo, chordPitches: chordPitches, chordScale: chordScale,
   };
 });

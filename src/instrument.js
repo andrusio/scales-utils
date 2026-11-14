@@ -30,9 +30,10 @@
   function noteName(pitch) { return NAMES[((pitch % 12) + 12) % 12]; }
   function octaveOf(pitch) { return Math.floor(pitch / 12) - 1; }
 
-  // Dibuja el teclado en `container`. `keyClass(note, pitch)` da clases extra.
-  // Cada tecla lleva data-note y data-pitch para los clicks.
-  function renderPiano(container, keyClass) {
+  // Dibuja el teclado en `container`. `keyClass(note, pitch)` da clases extra y
+  // `labelFn(note, pitch)` (opcional) el texto de la tecla. Cada tecla lleva
+  // data-note y data-pitch (altura MIDI) para los clicks.
+  function renderPiano(container, keyClass, labelFn) {
     container.className = 'piano';
     container.innerHTML = '';
     let whiteIndex = 0;
@@ -49,7 +50,7 @@
       else whiteIndex++;
       const label = document.createElement('span');
       label.className = 'label';
-      label.textContent = note;
+      label.textContent = (labelFn && labelFn(note, pitch)) || note;
       key.appendChild(label);
       if (!black && note === 'C') {
         const oct = document.createElement('span');
@@ -79,8 +80,33 @@
 
   renderSelector();
 
+  // Dibuja el instrumento elegido. `opts`: {config, cls(info), label(info)}, donde
+  // info = {note, pitch (MIDI), string?, fret?}.
+  function renderBoard(container, opts) {
+    if (mode === 'piano') {
+      renderPiano(container,
+        function (note, pitch) { return opts.cls ? opts.cls({ note: note, pitch: pitch }) : ''; },
+        function (note, pitch) { return opts.label ? opts.label({ note: note, pitch: pitch }) : null; });
+    } else {
+      window.Fretboard.render(container, opts.config,
+        function (s, f, note) { return opts.cls ? opts.cls({ note: note, string: s, fret: f, pitch: window.Fretboard.midiAt(opts.config, s, f) }) : ''; },
+        function (s, f, note) { return opts.label ? opts.label({ note: note, string: s, fret: f, pitch: window.Fretboard.midiAt(opts.config, s, f) }) : null; });
+    }
+  }
+
+  // Lee la casilla o tecla tocada: {key, note, pitch (MIDI), string?, fret?}.
+  function cellInfo(cell, config) {
+    if (cell.dataset.pitch !== undefined) {
+      const pitch = Number(cell.dataset.pitch);
+      return { key: 'p' + pitch, note: cell.dataset.note, pitch: pitch };
+    }
+    const s = Number(cell.dataset.string);
+    const f = Number(cell.dataset.fret);
+    return { key: s + ':' + f, note: cell.dataset.note, string: s, fret: f, pitch: window.Fretboard.midiAt(config, s, f) };
+  }
+
   window.InstrumentMode = {
-    get: get, set: set, renderPiano: renderPiano,
+    get: get, set: set, renderPiano: renderPiano, renderBoard: renderBoard, cellInfo: cellInfo,
     PIANO_LOW: PIANO_LOW, PIANO_HIGH: PIANO_HIGH,
   };
 })();

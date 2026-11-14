@@ -13,17 +13,36 @@
       <div class="mode-select">
         <span class="mode-label">Instrumento</span>
         <div id="mode-seg" class="seg" role="group" aria-label="Instrumento de toda la web"></div>
+        <button type="button" id="sound-toggle" class="sound-btn" aria-pressed="true">🔊 Sonido</button>
       </div>
     </div>
     <nav class="tabs" role="tablist" aria-label="Herramientas">
       <button type="button" role="tab" id="tab-scales" data-view="scales" aria-controls="view-scales" aria-selected="true">Identificador de escalas</button>
       <button type="button" role="tab" id="tab-chords" data-view="chords" aria-controls="view-chords" aria-selected="false">Identificador de acordes</button>
       <button type="button" role="tab" id="tab-circle" data-view="circle" aria-controls="view-circle" aria-selected="false">Círculo de quintas</button>
+      <button type="button" role="tab" id="tab-practice" data-view="practice" aria-controls="view-practice" aria-selected="false">Práctica</button>
     </nav>
     <p class="subtitle" id="subtitle"></p>
   </header>
 
   <main id="view-scales" role="tabpanel" aria-labelledby="tab-scales">
+    <section class="panel viewer" aria-label="Ver una escala">
+      <div class="viewer-row">
+        <h2>Ver una escala</h2>
+        <select id="view-root" aria-label="Tónica"></select>
+        <select id="view-scale" aria-label="Escala"></select>
+        <button type="button" id="view-show" class="primary">Mostrar en el instrumento</button>
+        <button type="button" id="view-play">▶ Escuchar</button>
+        <button type="button" id="view-close" hidden>Cerrar y volver a mi selección</button>
+      </div>
+      <div class="viewer-row viewer-opts">
+        <div id="view-labels" class="seg" role="group" aria-label="Mostrar grados o notas"></div>
+        <div id="view-pos" class="seg wrap" role="group" aria-label="Posición en el mástil"></div>
+        <button type="button" id="view-share" class="link-btn">Copiar link</button>
+      </div>
+      <div id="view-info" class="view-info" hidden></div>
+    </section>
+
     <section id="controls" class="controls" aria-label="Instrumento">
       <div id="controls-main" class="controls-main"></div>
       <div class="io">
@@ -69,11 +88,25 @@
       <div class="panel">
         <h2>Acordes guardados</h2>
         <div id="saved-chords" class="chips"></div>
+        <div id="saved-tools" class="chord-actions" hidden>
+          <button type="button" id="saved-play">▶ Escuchar</button>
+          <span class="tool-group">Transportar
+            <button type="button" id="transpose-down" aria-label="Bajar medio tono">−½</button>
+            <button type="button" id="transpose-up" aria-label="Subir medio tono">+½</button>
+          </span>
+          <button type="button" id="saved-share" class="link-btn">Copiar link</button>
+        </div>
+        <div id="capo-row" class="capo-row" hidden>
+          <label for="capo">Capo</label>
+          <select id="capo"></select>
+          <span id="capo-shapes" class="capo-shapes"></span>
+        </div>
         <div class="chord-actions">
           <button type="button" class="primary" id="to-circle">Mostrar en círculo de quintas</button>
           <button type="button" id="saved-clear">Vaciar lista</button>
         </div>
         <p id="saved-note" class="keys-head warn" aria-live="polite"></p>
+        <div id="chord-scales" class="chord-scales"></div>
       </div>
     </section>
   </main>
@@ -103,19 +136,49 @@
           <div id="chord-quality" class="seg" role="group" aria-label="Tipo de acorde"></div>
           <div id="chord-chips" class="chips"></div>
           <div id="chord-keys" class="keys"></div>
+          <button type="button" id="circle-share" class="link-btn" hidden>Copiar link</button>
+        </section>
+
+        <section class="panel">
+          <h2>Acordes de <span id="key-title"></span></h2>
+          <div id="key-sevenths" class="seg" role="group" aria-label="Tríadas o cuatriadas"></div>
+          <div id="key-chords" class="key-chords"></div>
+          <h3 class="sub-head">Progresiones típicas</h3>
+          <div id="progressions" class="progressions"></div>
         </section>
       </div>
     </div>
   </main>
 
+  <main id="view-practice" role="tabpanel" aria-labelledby="tab-practice" hidden>
+    <section class="panel practice">
+      <div id="ex-select" class="seg wrap" role="group" aria-label="Tipo de ejercicio"></div>
+      <p id="ex-score" class="ex-score" aria-live="polite"></p>
+      <p id="ex-prompt" class="ex-prompt"></p>
+      <button type="button" id="ex-play" class="primary">▶ Escuchar</button>
+      <div id="ex-board-wrap" class="board-wrap" hidden><div id="ex-board"></div></div>
+      <div id="ex-options" class="ex-options"></div>
+      <p id="ex-feedback" class="ex-feedback" aria-live="polite"></p>
+      <div class="chord-actions">
+        <button type="button" id="ex-check" class="primary" hidden>Comprobar</button>
+        <button type="button" id="ex-reveal" hidden>Ver respuesta</button>
+        <button type="button" id="ex-next">Siguiente</button>
+      </div>
+    </section>
+  </main>
+
+  <script src="src/spelling.js"></script>
   <script src="src/scales.js"></script>
+  <script src="src/chords.js"></script>
+  <script src="src/circle.js"></script>
+  <script src="src/practice.js"></script>
   <script src="src/fretboard.js"></script>
   <script src="src/instrument.js"></script>
+  <script src="src/audio.js"></script>
   <script src="src/app.js"></script>
-  <script src="src/circle.js"></script>
   <script src="src/circle-app.js"></script>
-  <script src="src/chords.js"></script>
   <script src="src/chords-app.js"></script>
+  <script src="src/practice-app.js"></script>
   <script src="src/tabs.js"></script>
 </body>
 </html>
