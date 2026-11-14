@@ -1,7 +1,7 @@
 (function (root, factory) {
-  if (typeof module === 'object' && module.exports) module.exports = factory();
-  else root.CircleCore = factory();
-})(typeof self !== 'undefined' ? self : this, function () {
+  if (typeof module === 'object' && module.exports) module.exports = factory(require('./spelling.js'));
+  else root.CircleCore = factory(root.Spelling);
+})(typeof self !== 'undefined' ? self : this, function (Spelling) {
   'use strict';
 
   // Notas como número de semitonos (0 = C ... 11 = B). Se escriben con sostenidos;
@@ -62,27 +62,72 @@
   // ---- Grados diatónicos ----
   // `minorNumeral`: el grado si se toma como tónica la relativa menor (números rosas).
   // `fn`: función armónica: T tónica, SD subdominante, D dominante.
+  // `seventh`: sufijo de la cuatriada del grado (Imaj7, ii7, V7, viiø...).
   const DEGREES = [
-    { numeral: 'I',    offset: 0,  quality: 'major', fn: 'T',  minorNumeral: 'III' },
-    { numeral: 'ii',   offset: 2,  quality: 'minor', fn: 'SD', minorNumeral: 'iv' },
-    { numeral: 'iii',  offset: 4,  quality: 'minor', fn: 'T',  minorNumeral: 'v' },
-    { numeral: 'IV',   offset: 5,  quality: 'major', fn: 'SD', minorNumeral: 'VI' },
-    { numeral: 'V',    offset: 7,  quality: 'major', fn: 'D',  minorNumeral: 'VII' },
-    { numeral: 'vi',   offset: 9,  quality: 'minor', fn: 'T',  minorNumeral: 'i' },
-    { numeral: 'vii°', offset: 11, quality: 'dim',   fn: 'D',  minorNumeral: 'ii°' },
+    { numeral: 'I',    offset: 0,  quality: 'major', fn: 'T',  minorNumeral: 'III', seventh: 'maj7', seventhType: 'maj7' },
+    { numeral: 'ii',   offset: 2,  quality: 'minor', fn: 'SD', minorNumeral: 'iv',  seventh: 'm7',   seventhType: 'm7' },
+    { numeral: 'iii',  offset: 4,  quality: 'minor', fn: 'T',  minorNumeral: 'v',   seventh: 'm7',   seventhType: 'm7' },
+    { numeral: 'IV',   offset: 5,  quality: 'major', fn: 'SD', minorNumeral: 'VI',  seventh: 'maj7', seventhType: 'maj7' },
+    { numeral: 'V',    offset: 7,  quality: 'major', fn: 'D',  minorNumeral: 'VII', seventh: '7',    seventhType: '7' },
+    { numeral: 'vi',   offset: 9,  quality: 'minor', fn: 'T',  minorNumeral: 'i',   seventh: 'm7',   seventhType: 'm7' },
+    { numeral: 'vii°', offset: 11, quality: 'dim',   fn: 'D',  minorNumeral: 'ii°', seventh: 'm7b5', seventhType: 'm7b5' },
   ];
 
-  function chordLabel(chord) {
-    const suffix = chord.quality === 'minor' ? 'm' : chord.quality === 'dim' ? '°' : '';
-    return NAMES[chord.root] + suffix;
+  const SUFFIX = { major: '', minor: 'm', dim: '°' };
+  const TRIAD_DEGREES = { major: ['1', '3', '5'], minor: ['1', 'b3', '5'], dim: ['1', 'b3', 'b5'] };
+
+  // Nombre de una tonalidad o raíz bien escrito (Bb mayor, G# menor).
+  function keyName(pc, quality) { return Spelling.keyName(mod(pc), quality); }
+
+  // Nombre del acorde del círculo: mayores y menores como su tonalidad
+  // (Bb, G#m), disminuidos según el acorde (A#°, E#°).
+  function chordRootName(chord) {
+    if (chord.quality === 'dim') return Spelling.bestRoot(chord.root, TRIAD_DEGREES.dim);
+    return keyName(chord.root, chord.quality);
   }
 
-  // Misma etiqueta con bemol, o null si la nota no tiene enarmonía.
+  function chordLabel(chord) {
+    return chordRootName(chord) + SUFFIX[chord.quality];
+  }
+
+  // La misma etiqueta escrita con la otra enarmonía (Bb ↔ A#), o null.
   function chordAliasLabel(chord) {
-    const alias = FLAT_ALIAS[chord.root];
-    if (!alias) return null;
-    const suffix = chord.quality === 'minor' ? 'm' : chord.quality === 'dim' ? '°' : '';
-    return alias + suffix;
+    const alt = Spelling.enharmonic(chordRootName(chord));
+    return alt ? alt + SUFFIX[chord.quality] : null;
+  }
+
+  // Los 7 acordes de una tonalidad mayor, escritos en esa tonalidad.
+  // Con `sevenths`, las cuatriadas (Cmaj7 Dm7 Em7 Fmaj7 G7 Am7 Bm7b5).
+  function diatonicChords(key, sevenths) {
+    const names = Spelling.spell(key, Spelling.MAJOR_DEGREES).notes;
+    return DEGREES.map(function (d, i) {
+      const suffix = sevenths ? d.seventh : SUFFIX[d.quality];
+      return {
+        numeral: d.numeral,
+        root: mod(key + d.offset),
+        quality: d.quality,
+        typeId: sevenths ? d.seventhType : { major: 'maj', minor: 'min', dim: 'dim' }[d.quality],
+        label: names[i] + suffix,
+      };
+    });
+  }
+
+  // Progresiones típicas, por grados de la tonalidad mayor.
+  const PROGRESSIONS = [
+    { name: 'Pop', numerals: ['I', 'V', 'vi', 'IV'] },
+    { name: 'ii – V – I (jazz)', numerals: ['ii', 'V', 'I'] },
+    { name: 'Años 50', numerals: ['I', 'vi', 'IV', 'V'] },
+    { name: 'Rock / blues', numerals: ['I', 'IV', 'V'] },
+    { name: 'Menor pop', numerals: ['vi', 'IV', 'I', 'V'] },
+    { name: 'Canon', numerals: ['I', 'V', 'vi', 'iii', 'IV', 'I', 'IV', 'V'] },
+    { name: 'Círculo de quintas', numerals: ['vi', 'ii', 'V', 'I'] },
+  ];
+
+  function progressionChords(key, numerals, sevenths) {
+    const all = diatonicChords(key, sevenths);
+    return numerals.map(function (n) {
+      return all.filter(function (c) { return c.numeral === n; })[0];
+    });
   }
 
   function sameChord(a, b) {
@@ -153,6 +198,8 @@
     relativeMinor: relativeMinor, relativeMajor: relativeMajor, keyCenterOf: keyCenterOf,
     MODES: MODES, modesOfRoot: modesOfRoot,
     DEGREES: DEGREES, chordLabel: chordLabel, chordAliasLabel: chordAliasLabel,
+    keyName: keyName, diatonicChords: diatonicChords,
+    PROGRESSIONS: PROGRESSIONS, progressionChords: progressionChords,
     sameChord: sameChord, degreeOfChord: degreeOfChord,
     rankKeys: rankKeys, rootForKey: rootForKey, suggestFromChords: suggestFromChords,
   };

@@ -8,8 +8,9 @@
 
   // Dibuja un mástil en `container`: una fila por cuerda (aguda arriba) y una
   // columna por traste (0 = al aire), más la fila de números y marcas.
-  // `cellClass(stringIndex, fret, note)` devuelve clases extra para cada casilla.
-  function render(container, config, cellClass) {
+  // `cellClass(stringIndex, fret, note)` devuelve clases extra para cada casilla y
+  // `labelFn(stringIndex, fret, note)` (opcional) el texto a mostrar en ella.
+  function render(container, config, cellClass, labelFn) {
     container.className = 'fretboard';
     container.innerHTML = '';
     const rows = Core.renderOrder(config.tuning);
@@ -26,7 +27,7 @@
         cell.dataset.fret = String(fret);
         const label = document.createElement('span');
         label.className = 'label';
-        label.textContent = note;
+        label.textContent = (labelFn && labelFn(row.tuningIndex, fret, note)) || note;
         cell.appendChild(label);
         rowEl.appendChild(cell);
       }
@@ -54,5 +55,17 @@
     container.appendChild(markers);
   }
 
-  window.Fretboard = { render: render };
+  // Altura MIDI de una casilla (la primera cuerda queda en la octava 2: E2 = 40).
+  function midiAt(config, stringIndex, fret) {
+    const open = [];
+    config.tuning.forEach(function (name, i) {
+      const pc = Core.noteIndex(name);
+      if (i === 0) { open.push(pc); return; }
+      const prev = open[i - 1];
+      open.push(prev + ((((pc - prev) % 12) + 12) % 12 || 12));
+    });
+    return open[stringIndex] + fret + 36;
+  }
+
+  window.Fretboard = { render: render, midiAt: midiAt };
 })();
