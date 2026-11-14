@@ -19,6 +19,7 @@
     chords: [],                   // [{root, quality}] en el orden en que se cargaron
     chordQuality: 'major',        // tipo con el que se agregan acordes
     rot: 0,                       // rotación actual del disco en grados
+    sevenths: false,              // panel de la tonalidad: tríadas o cuatriadas
   };
   state.rot = -C.positionOf(state.center) * STEP;
 
@@ -34,7 +35,13 @@
     chordQuality: document.getElementById('chord-quality'),
     chips: document.getElementById('chord-chips'),
     keys: document.getElementById('chord-keys'),
+    share: document.getElementById('circle-share'),
+    keyTitle: document.getElementById('key-title'),
+    keySevenths: document.getElementById('key-sevenths'),
+    keyChords: document.getElementById('key-chords'),
+    progressions: document.getElementById('progressions'),
   };
+  const K = window.ChordsCore;
 
   const mod = C.mod;
   const f = function (n) { return Math.round(n * 100) / 100; };
@@ -44,8 +51,8 @@
     const alias = C.FLAT_ALIAS[pc];
     return C.NAMES[pc] + (alias ? '<span class="alias">/' + alias + '</span>' : '');
   }
-  function majorName(pc) { return C.NAMES[pc] + ' mayor'; }
-  function rootLabel() { return C.NAMES[state.root] + (state.quality === 'minor' ? 'm' : ''); }
+  function majorName(pc) { return C.keyName(pc, 'major') + ' mayor'; }
+  function rootLabel() { return C.keyName(state.root, state.quality) + (state.quality === 'minor' ? 'm' : ''); }
   function adjText(adj) { return adj > 0 ? '+½' : adj < 0 ? '−½' : ''; }
 
   // ---- Geometría ----
@@ -360,7 +367,7 @@
         const b = document.createElement('button');
         b.type = 'button';
         b.className = 'key-btn' + (cand.key === state.center ? ' active' : '');
-        b.innerHTML = noteHtml(cand.key) + ' mayor <span class="alias">/ ' + C.NAMES[C.relativeMinor(cand.key)] + 'm</span>';
+        b.innerHTML = C.keyName(cand.key, 'major') + ' mayor <span class="alias">/ ' + C.keyName(C.relativeMinor(cand.key), 'minor') + 'm</span>';
         b.addEventListener('click', function () { pickKey(cand.key); });
         el.keys.appendChild(b);
       });
@@ -374,12 +381,89 @@
     }
   }
 
+  // Acordes de la tonalidad central (tríadas o cuatriadas) y progresiones típicas.
+  function chordMidis(c) { return K.chordPitches(c.root, c.typeId, null, 48); }
+
+  function renderKeyPanel() {
+    el.keyTitle.textContent = majorName(state.center);
+    seg(el.keySevenths, [{ value: false, label: 'Tríadas' }, { value: true, label: 'Cuatriadas' }], state.sevenths,
+      function (x) { state.sevenths = x; renderKeyPanel(); });
+
+    el.keyChords.innerHTML = '';
+    C.diatonicChords(state.center, state.sevenths).forEach(function (c) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'deg-btn';
+      b.innerHTML = '<small>' + c.numeral + '</small><strong>' + c.label + '</strong>';
+      b.title = 'Escuchar ' + c.label;
+      b.addEventListener('click', function () { window.Sound.chord(chordMidis(c), false); });
+      el.keyChords.appendChild(b);
+    });
+
+    el.progressions.innerHTML = '';
+    C.PROGRESSIONS.forEach(function (p) {
+      const chords = C.progressionChords(state.center, p.numerals, state.sevenths);
+      const row = document.createElement('div');
+      row.className = 'prog-row';
+      row.innerHTML = '<span class="prog-name">' + p.name + '<small>' + p.numerals.join(' – ') + '</small></span>' +
+        '<span class="prog-chords">' + chords.map(function (c) { return c.label; }).join(' · ') + '</span>';
+      const actions = document.createElement('span');
+      actions.className = 'prog-actions';
+      const play = document.createElement('button');
+      play.type = 'button';
+      play.className = 'mini-btn';
+      play.textContent = '▶';
+      play.title = 'Escuchar la progresión';
+      play.addEventListener('click', function () { window.Sound.progression(chords.map(chordMidis), 1); });
+      const load = document.createElement('button');
+      load.type = 'button';
+      load.className = 'mini-btn';
+      load.textContent = 'Cargar';
+      load.title = 'Cargar estos acordes en el círculo';
+      load.addEventListener('click', function () {
+        setChords(chords.map(function (c) { return { root: c.root, quality: c.quality }; }), '');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+      actions.appendChild(play);
+      actions.appendChild(load);
+      row.appendChild(actions);
+      el.progressions.appendChild(row);
+    });
+  }
+
   function renderPanels() {
     noteGrid(el.rootGrid, setRoot, function (pc) { return pc === state.root; });
     seg(el.rootQuality,
       [{ value: 'major', label: 'Mayor' }, { value: 'minor', label: 'menor' }],
       state.quality, setRootQuality);
     renderChords();
+    renderKeyPanel();
+    el.share.hidden = state.chords.length === 0;
+  }
+
+  el.share.addEventListener('click', function () {
+    const q = { major: 'M', minor: 'm', dim: 'd' };
+    const list = state.chords.map(function (c) { return c.root + q[c.quality]; }).join(',');
+    window.tabsApp.share('#circulo?acordes=' + list + '&raiz=' + state.root + '&calidad=' + state.quality, el.share);
+  });
+
+  // Link compartido: #circulo?acordes=9M,2M,4M&raiz=9&calidad=major
+  function applyParams(params) {
+    const q = { M: 'major', m: 'minor', d: 'dim' };
+    const chords = [];
+    (params.get('acordes') || '').split(',').forEach(function (item) {
+      const m = /^(\d+)([Mmd])$/.exec(item);
+      if (m && Number(m[1]) < 12) chords.push({ root: Number(m[1]), quality: q[m[2]] });
+    });
+    if (chords.length) setChords(chords, '');
+    const raiz = Number(params.get('raiz'));
+    const calidad = params.get('calidad');
+    if (params.has('raiz') && raiz >= 0 && raiz < 12) {
+      if (calidad === 'major' || calidad === 'minor') state.quality = calidad;
+      state.root = raiz;
+      if (!chords.length) state.center = C.keyCenterOf(raiz, state.quality);
+      render();
+    }
   }
 
   function render() {
@@ -407,6 +491,7 @@
     state: state,
     render: render,
     setChords: setChords,
+    applyParams: applyParams,
     toggleChord: toggleChord,
     setRoot: setRoot,
     manualCenter: manualCenter,

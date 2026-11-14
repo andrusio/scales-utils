@@ -7,14 +7,91 @@
   const NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
   const SCALES = [
-    { name: 'Mayor',             intervals: ['T', 'T', 'S', 'T', 'T', 'T', 'S'], count: 7 },
-    { name: 'Natural Menor',     intervals: ['T', 'S', 'T', 'T', 'S', 'T', 'T'], count: 7 },
-    { name: 'Melódica Menor',    intervals: ['T', 'S', 'T', 'T', 'T', 'T', 'S'], count: 7 },
-    { name: 'Harmónica Menor',   intervals: ['T', 'S', 'T', 'T', 'S', 'TS', 'S'], count: 7 },
-    { name: 'Pentatónica Mayor', intervals: ['T', 'T', 'TS', 'T', 'TS'],          count: 5 },
-    { name: 'Pentatónica Menor', intervals: ['TS', 'T', 'T', 'TS', 'T'],          count: 5 },
-    { name: 'Enigmática',        intervals: ['S', 'TS', 'T', 'T', 'T', 'S', 'S'], count: 7 },
+    { name: 'Mayor',             intervals: ['T', 'T', 'S', 'T', 'T', 'T', 'S'], count: 7, degrees: ['1', '2', '3', '4', '5', '6', '7'] },
+    { name: 'Natural Menor',     intervals: ['T', 'S', 'T', 'T', 'S', 'T', 'T'], count: 7, degrees: ['1', '2', 'b3', '4', '5', 'b6', 'b7'] },
+    { name: 'Melódica Menor',    intervals: ['T', 'S', 'T', 'T', 'T', 'T', 'S'], count: 7, degrees: ['1', '2', 'b3', '4', '5', '6', '7'] },
+    { name: 'Harmónica Menor',   intervals: ['T', 'S', 'T', 'T', 'S', 'TS', 'S'], count: 7, degrees: ['1', '2', 'b3', '4', '5', 'b6', '7'] },
+    { name: 'Pentatónica Mayor', intervals: ['T', 'T', 'TS', 'T', 'TS'],          count: 5, degrees: ['1', '2', '3', '5', '6'] },
+    { name: 'Pentatónica Menor', intervals: ['TS', 'T', 'T', 'TS', 'T'],          count: 5, degrees: ['1', 'b3', '4', '5', 'b7'] },
+    { name: 'Enigmática',        intervals: ['S', 'TS', 'T', 'T', 'T', 'S', 'S'], count: 7, degrees: ['1', 'b2', '3', '#4', '#5', '#6', '7'] },
   ];
+
+  // Escalas que se pueden mostrar en el instrumento, con sus grados.
+  const VIEW_SCALES = [
+    { name: 'Mayor (Jónico)',          degrees: ['1', '2', '3', '4', '5', '6', '7'] },
+    { name: 'Menor natural (Eólico)',  degrees: ['1', '2', 'b3', '4', '5', 'b6', 'b7'] },
+    { name: 'Dórico',                  degrees: ['1', '2', 'b3', '4', '5', '6', 'b7'] },
+    { name: 'Frigio',                  degrees: ['1', 'b2', 'b3', '4', '5', 'b6', 'b7'] },
+    { name: 'Lidio',                   degrees: ['1', '2', '3', '#4', '5', '6', '7'] },
+    { name: 'Mixolidio',               degrees: ['1', '2', '3', '4', '5', '6', 'b7'] },
+    { name: 'Locrio',                  degrees: ['1', 'b2', 'b3', '4', 'b5', 'b6', 'b7'] },
+    { name: 'Menor armónica',          degrees: ['1', '2', 'b3', '4', '5', 'b6', '7'] },
+    { name: 'Menor melódica',          degrees: ['1', '2', 'b3', '4', '5', '6', '7'] },
+    { name: 'Pentatónica mayor',       degrees: ['1', '2', '3', '5', '6'] },
+    { name: 'Pentatónica menor',       degrees: ['1', 'b3', '4', '5', 'b7'] },
+    { name: 'Blues',                   degrees: ['1', 'b3', '4', 'b5', '5', 'b7'] },
+    { name: 'Tonos enteros',           degrees: ['1', '2', '3', '#4', '#5', 'b7'] },
+    { name: 'Disminuida (semitono-tono)', degrees: ['1', 'b2', 'b3', '3', '#4', '5', '6', 'b7'] },
+    { name: 'Disminuida (tono-semitono)', degrees: ['1', '2', 'b3', '4', 'b5', 'b6', '6', '7'] },
+    { name: 'Enigmática',              degrees: ['1', 'b2', '3', '#4', '#5', '#6', '7'] },
+  ];
+
+  // Nombre en VIEW_SCALES para una escala de SCALES o un modo griego.
+  const VIEW_ALIASES = {
+    'Mayor': 'Mayor (Jónico)', 'Jónico': 'Mayor (Jónico)',
+    'Natural Menor': 'Menor natural (Eólico)', 'Eólico': 'Menor natural (Eólico)',
+    'Melódica Menor': 'Menor melódica', 'Harmónica Menor': 'Menor armónica',
+    'Pentatónica Mayor': 'Pentatónica mayor', 'Pentatónica Menor': 'Pentatónica menor',
+  };
+
+  function viewScale(name) {
+    const n = VIEW_ALIASES[name] || name;
+    return VIEW_SCALES.filter(function (v) { return v.name === n; })[0] || null;
+  }
+
+  const DEG_BASE = [0, 2, 4, 5, 7, 9, 11];
+  function degreeSemis(d) {
+    const m = /^(bb|b|##|#)?(\d+)$/.exec(d);
+    const acc = { 'bb': -2, 'b': -1, '': 0, '#': 1, '##': 2 }[m[1] || ''];
+    return (((DEG_BASE[(Number(m[2]) - 1) % 7] + acc) % 12) + 12) % 12;
+  }
+
+  // Posiciones de una escala en el mástil: "N notas por cuerda" (3 para escalas
+  // de 7 o más notas, 2 para las demás), una por cada grado inicial en la cuerda
+  // más grave. `open` son las alturas absolutas de las cuerdas al aire (grave →
+  // agudo). Devuelve [{start, cells: [{string, fret, degreeIndex}]}] ordenadas
+  // por traste.
+  function scalePositions(open, frets, rootPc, degrees) {
+    const semis = degrees.map(degreeSemis);
+    const n = semis.length;
+    const perString = n >= 7 ? 3 : 2;
+    const out = [];
+    for (let start = 0; start < n; start++) {
+      const firstPc = (rootPc + semis[start]) % 12;
+      const f0 = (((firstPc - open[0]) % 12) + 12) % 12;
+      for (const shift of [0, 12]) {
+        const rootPitch = open[0] + f0 + shift - semis[start];
+        const cells = [];
+        let idx = start;
+        let ok = true;
+        for (let s = 0; s < open.length && ok; s++) {
+          for (let k = 0; k < perString; k++) {
+            const pitch = rootPitch + 12 * Math.floor(idx / n) + semis[idx % n];
+            const fret = pitch - open[s];
+            if (fret < 0 || fret > frets) { ok = false; break; }
+            cells.push({ string: s, fret: fret, degreeIndex: idx % n });
+            idx++;
+          }
+        }
+        if (ok) { out.push({ start: start, cells: cells }); break; }
+      }
+    }
+    out.sort(function (a, b) {
+      return Math.min.apply(null, a.cells.map(function (c) { return c.fret; })) -
+        Math.min.apply(null, b.cells.map(function (c) { return c.fret; }));
+    });
+    return out;
+  }
 
   const MAX_RESULTS = 10;
 
@@ -150,6 +227,7 @@
     NOTES, noteIndex, SCALES, generateScale,
     MAX_RESULTS, findScales,
     MODE_NAMES, modesForScale,
+    VIEW_SCALES, viewScale, degreeSemis, scalePositions,
     MIN_FRETS, MAX_FRETS, DEFAULT_CONFIG,
     noteAtPosition, renderOrder, validateConfig, serializeConfig, parseConfig,
   };

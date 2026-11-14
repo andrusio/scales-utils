@@ -2,12 +2,15 @@
   'use strict';
 
   const K = window.ChordsCore;
-  const ALIAS = { 1: 'Db', 3: 'Eb', 6: 'Gb', 8: 'Ab', 10: 'Bb' };
+  const C = window.CircleCore;
+  const S = window.Spelling;
+  const Core = window.ScalesCore;
 
   const state = {
-    positions: new Map(), // "cuerda:traste" (guitarra) o "p<altura>" (piano) -> {pitch}
+    positions: new Map(), // "cuerda:traste" (guitarra) o "p<altura>" (piano) -> {pitch (MIDI)}
     reading: 0,           // lectura elegida entre las exactas
-    saved: [],            // acordes guardados: {label, root, triad, baseLabel}
+    saved: [],            // acordes guardados: {root, typeId, bass}
+    capo: 0,
   };
 
   const el = {
@@ -17,18 +20,28 @@
     clearBoard: document.getElementById('chord-clear-board'),
     result: document.getElementById('chord-result'),
     saved: document.getElementById('saved-chords'),
+    savedTools: document.getElementById('saved-tools'),
     toCircle: document.getElementById('to-circle'),
     savedClear: document.getElementById('saved-clear'),
     savedNote: document.getElementById('saved-note'),
+    play: document.getElementById('saved-play'),
+    down: document.getElementById('transpose-down'),
+    up: document.getElementById('transpose-up'),
+    share: document.getElementById('saved-share'),
+    capoRow: document.getElementById('capo-row'),
+    capo: document.getElementById('capo'),
+    capoShapes: document.getElementById('capo-shapes'),
+    scales: document.getElementById('chord-scales'),
   };
 
   function config() { return window.scalesApp.state.config; }
-
-  function noteHtml(pc) {
-    return K.NAMES[pc] + (ALIAS[pc] ? '<span class="alias">/' + ALIAS[pc] + '</span>' : '');
-  }
-
   function isPiano() { return window.InstrumentMode.get() === 'piano'; }
+  function mod(n) { return ((n % 12) + 12) % 12; }
+
+  function nameHtml(name) {
+    const alt = S.enharmonic(name);
+    return name + (alt ? '<span class="alias">/' + alt + '</span>' : '');
+  }
 
   // Notas marcadas (clases de altura) y la más grave.
   function analyze() {
@@ -36,10 +49,9 @@
     let bassPc = null;
     const pcs = [];
     state.positions.forEach(function (p) {
-      const pitch = p.pitch;
-      const pc = ((pitch % 12) + 12) % 12;
+      const pc = mod(p.pitch);
       pcs.push(pc);
-      if (pitch < bassPitch) { bassPitch = pitch; bassPc = pc; }
+      if (p.pitch < bassPitch) { bassPitch = p.pitch; bassPc = pc; }
     });
     return K.identify(pcs, bassPc === null ? 0 : bassPc);
   }
@@ -49,37 +61,39 @@
     return r.exact[Math.min(state.reading, r.exact.length - 1)];
   }
 
-  // ---- Mástil ----
+  function markedMidis() {
+    const out = [];
+    state.positions.forEach(function (p) { out.push(p.pitch); });
+    return out;
+  }
+
+  // ---- Instrumento ----
   function renderBoard(reading) {
-    const mark = function (key, note) {
-      if (!state.positions.has(key)) return '';
-      const isRoot = reading && K.NAMES[reading.root] === note;
-      return 'selected' + (isRoot ? ' chord-root' : '');
-    };
     el.board.setAttribute('aria-label', isPiano() ? 'Teclado para armar acordes' : 'Mástil para armar acordes');
-    if (isPiano()) {
-      window.InstrumentMode.renderPiano(el.board, function (note, pitch) { return mark('p' + pitch, note); });
-    } else {
-      window.Fretboard.render(el.board, config(), function (s, f, note) { return mark(s + ':' + f, note); });
-    }
+    const names = {};
+    if (reading) reading.tones.forEach(function (t) { names[t.pc] = t.name; });
+    window.InstrumentMode.renderBoard(el.board, {
+      config: config(),
+      cls: function (i) {
+        const key = i.string !== undefined ? i.string + ':' + i.fret : 'p' + i.pitch;
+        if (!state.positions.has(key)) return '';
+        const isRoot = reading && reading.root === mod(i.pitch);
+        return 'selected' + (isRoot ? ' chord-root' : '');
+      },
+      label: function (i) { return names[mod(i.pitch)] || null; },
+    });
   }
 
   el.board.addEventListener('click', function (e) {
     const cell = e.target.closest('[data-note]');
     if (!cell) return;
-    let key;
-    let pitch;
-    if (cell.dataset.pitch !== undefined) {
-      pitch = Number(cell.dataset.pitch);
-      key = 'p' + pitch;
+    const info = window.InstrumentMode.cellInfo(cell, config());
+    if (state.positions.has(info.key)) {
+      state.positions.delete(info.key);
     } else {
-      const s = Number(cell.dataset.string);
-      const f = Number(cell.dataset.fret);
-      key = s + ':' + f;
-      pitch = K.openPitches(config().tuning)[s] + f;
+      state.positions.set(info.key, { pitch: info.pitch });
+      window.Sound.tap(info.pitch);
     }
-    if (state.positions.has(key)) state.positions.delete(key);
-    else state.positions.set(key, { pitch: pitch });
     state.reading = 0;
     render();
   });
@@ -90,7 +104,7 @@
     reading.tones.forEach(function (t) {
       const cls = 'tone-row' + (t.degree === '1' ? ' is-root' : '') + (t.present ? '' : ' absent');
       const tag = t.omitted ? ' <span class="tone-tag">omitida</span>' : t.missing ? ' <span class="tone-tag">falta</span>' : '';
-      html += '<div class="' + cls + '"><span class="tone-note">' + noteHtml(t.pc) + '</span>' +
+      html += '<div class="' + cls + '"><span class="tone-note">' + nameHtml(t.name) + '</span>' +
         '<span class="tone-int">' + t.interval + tag + '</span></div>';
     });
     return html + '</div>';
@@ -103,8 +117,11 @@
       return;
     }
 
-    let html = '<p class="chord-notes">Notas: ' + r.notes.map(noteHtml).join(' ') +
-      ' <span class="alias">· bajo: ' + K.NAMES[r.bass] + '</span></p>';
+    const names = {};
+    if (reading) reading.tones.forEach(function (t) { names[t.pc] = t.name; });
+    const nm = function (pc) { return names[pc] || K.NAMES[pc]; };
+    let html = '<p class="chord-notes">Notas: ' + r.notes.map(nm).join(' ') +
+      ' <span class="alias">· bajo: ' + nm(r.bass) + '</span></p>';
 
     if (reading) {
       const extra = [reading.typeName];
@@ -121,7 +138,10 @@
         });
         html += '</div>';
       }
-      html += '<div class="chord-actions"><button type="button" class="primary" id="save-chord">Guardar acorde</button></div>';
+      html += '<div class="chord-actions">' +
+        '<button type="button" class="primary" id="save-chord">Guardar acorde</button>' +
+        '<button type="button" id="play-chord">▶ Junto</button>' +
+        '<button type="button" id="play-arp">▶ Arpegio</button></div>';
     } else {
       if (r.interval) html += '<div class="chord-type">Intervalo: <strong>' + r.interval + '</strong> (' + K.NAMES[r.notes[0]] + ' → ' + K.NAMES[r.notes[1]] + ')</div>';
       if (r.notes.length === 1) {
@@ -130,11 +150,14 @@
         html += '<p class="chord-alt-head">No es un acorde completo. Con una nota más podría ser:</p><ul class="partial-list">';
         r.partial.forEach(function (p) {
           html += '<li><strong>' + p.label + '</strong> <span class="alias">(' + p.typeName.toLowerCase() +
-            ', falta ' + p.missing.map(function (m) { return K.NAMES[m]; }).join(', ') + ')</span></li>';
+            ', falta ' + p.missingNames.join(', ') + ')</span></li>';
         });
         html += '</ul>';
       } else {
         html += '<p class="empty">No reconozco este acorde.</p>';
+      }
+      if (r.notes.length > 1) {
+        html += '<div class="chord-actions"><button type="button" id="play-chord">▶ Junto</button><button type="button" id="play-arp">▶ Arpegio</button></div>';
       }
     }
     el.result.innerHTML = html;
@@ -144,13 +167,87 @@
     });
     const saveBtn = document.getElementById('save-chord');
     if (saveBtn) saveBtn.addEventListener('click', function () { saveChord(reading); });
+    const playBtn = document.getElementById('play-chord');
+    if (playBtn) playBtn.addEventListener('click', function () { window.Sound.chord(markedMidis(), false); });
+    const arpBtn = document.getElementById('play-arp');
+    if (arpBtn) arpBtn.addEventListener('click', function () { window.Sound.chord(markedMidis(), true); });
   }
 
   // ---- Lista de acordes guardados ----
+  function info(c) { return K.chordInfo(c.root, c.typeId, c.bass); }
+
   function saveChord(reading) {
-    state.saved.push({ label: reading.label, baseLabel: reading.baseLabel, root: reading.root, triad: reading.triad });
+    state.saved.push({ root: reading.root, typeId: reading.typeId, bass: reading.bass });
     el.savedNote.textContent = '';
     renderSaved();
+  }
+
+  function transpose(n) {
+    state.saved = state.saved.map(function (c) {
+      return { root: mod(c.root + n), typeId: c.typeId, bass: mod(c.bass + n) };
+    });
+    renderSaved();
+  }
+
+  // Tonalidad estimada a partir de las tríadas de la lista (como el círculo).
+  function estimatedKey() {
+    const triads = state.saved
+      .map(function (c) { return { root: c.root, quality: K.typeById(c.typeId).triad }; })
+      .filter(function (c) { return c.quality; });
+    return C.suggestFromChords(triads);
+  }
+
+  function renderScales() {
+    el.scales.innerHTML = '';
+    if (!state.saved.length) return;
+    const s = estimatedKey();
+    const key = s ? s.center : null;
+    let html = '<h3 class="sub-head">Qué escala tocar encima</h3>';
+    if (s) {
+      html += '<p class="keys-head">Tonalidad estimada: <strong>' + C.keyName(key, 'major') + ' mayor</strong> (o ' +
+        C.keyName(C.relativeMinor(key), 'minor') + ' menor)' + (s.complete ? '' : ', con acordes de afuera') + '.</p>';
+    }
+    html += '<div class="scale-sugs">';
+    const seen = {};
+    state.saved.forEach(function (c) {
+      const label = info(c).label;
+      if (seen[label]) return;
+      seen[label] = true;
+      const sug = K.chordScale(c.root, c.typeId, key);
+      const vs = Core.viewScale(sug.scale);
+      const rootName = S.spell(c.root, vs.degrees).root;
+      const why = sug.diatonic ? sug.numeral + ' de ' + C.keyName(key, 'major') + ' mayor' : 'fuera de la tonalidad: según el tipo de acorde';
+      html += '<div class="sug-row"><span class="sug-chord">' + label + '</span><span class="sug-arrow">→</span>' +
+        '<span class="sug-scale"><strong>' + rootName + ' ' + vs.name + '</strong><small>' + why + '</small></span>' +
+        '<span class="sug-actions"><button type="button" class="mini-btn" data-play="' + c.root + '|' + vs.name + '" title="Escuchar la escala">▶</button>' +
+        '<button type="button" class="mini-btn" data-view="' + c.root + '|' + vs.name + '" title="Ver la escala en el instrumento">Ver</button></span></div>';
+    });
+    html += '</div>';
+    el.scales.innerHTML = html;
+    el.scales.querySelectorAll('[data-play]').forEach(function (b) {
+      const parts = b.dataset.play.split('|');
+      b.addEventListener('click', function () { window.scalesApp.playScale(Number(parts[0]), parts[1]); });
+    });
+    el.scales.querySelectorAll('[data-view]').forEach(function (b) {
+      const parts = b.dataset.view.split('|');
+      b.addEventListener('click', function () {
+        window.scalesApp.showScale(Number(parts[0]), parts[1]);
+        window.tabsApp.show('scales');
+        window.scrollTo(0, 0);
+      });
+    });
+  }
+
+  function renderCapo() {
+    el.capoRow.hidden = isPiano() || !state.saved.length;
+    if (el.capoRow.hidden) return;
+    el.capo.value = String(state.capo);
+    if (state.capo === 0) {
+      el.capoShapes.textContent = 'Elegí un traste para ver qué formas tocar con capo y que suene igual.';
+      return;
+    }
+    const shapes = state.saved.map(function (c) { return K.chordInfo(mod(c.root - state.capo), c.typeId, mod(c.bass - state.capo)).label; });
+    el.capoShapes.innerHTML = 'Con capo en el traste ' + state.capo + ' tocá: <strong>' + shapes.join(' · ') + '</strong>';
   }
 
   function renderSaved() {
@@ -160,23 +257,23 @@
     }
     state.saved.forEach(function (c, i) {
       const chip = document.createElement('span');
-      chip.className = 'chip' + (c.triad ? '' : ' out');
-      chip.innerHTML = '<span class="chip-idx">' + (i + 1) + '</span><strong>' + c.label + '</strong>';
+      chip.className = 'chip' + (K.typeById(c.typeId).triad ? '' : ' out');
+      chip.innerHTML = '<span class="chip-idx">' + (i + 1) + '</span><strong>' + info(c).label + '</strong>';
       const x = document.createElement('button');
       x.type = 'button';
       x.className = 'chip-x';
-      x.setAttribute('aria-label', 'Quitar ' + c.label);
+      x.setAttribute('aria-label', 'Quitar ' + info(c).label);
       x.textContent = '×';
       x.addEventListener('click', function () { state.saved.splice(i, 1); renderSaved(); });
       chip.appendChild(x);
       el.saved.appendChild(chip);
     });
-    el.toCircle.disabled = state.saved.length === 0;
-    el.savedClear.disabled = state.saved.length === 0;
-  }
-
-  function triadLabel(c) {
-    return K.NAMES[c.root] + (c.triad === 'minor' ? 'm' : c.triad === 'dim' ? '°' : '');
+    const empty = state.saved.length === 0;
+    el.toCircle.disabled = empty;
+    el.savedClear.disabled = empty;
+    el.savedTools.hidden = empty;
+    renderCapo();
+    renderScales();
   }
 
   // Manda la lista al círculo: cada acorde se ubica por su tríada (G7 → G, Bm7b5 → B°).
@@ -185,10 +282,12 @@
     const reduced = [];
     const skipped = [];
     state.saved.forEach(function (c) {
-      if (!c.triad) { skipped.push(c.label); return; }
-      const t = triadLabel(c);
-      if (t !== c.label) reduced.push(c.label + ' → ' + t);
-      chords.push({ root: c.root, quality: c.triad });
+      const label = info(c).label;
+      const triad = K.typeById(c.typeId).triad;
+      if (!triad) { skipped.push(label); return; }
+      const t = C.chordLabel({ root: c.root, quality: triad });
+      if (t !== label) reduced.push(label + ' → ' + t);
+      chords.push({ root: c.root, quality: triad });
     });
     const notes = [];
     if (reduced.length) notes.push('En el círculo se ubican por su tríada: ' + reduced.join(', ') + '.');
@@ -207,6 +306,22 @@
     el.savedNote.textContent = '';
     renderSaved();
   });
+  el.play.addEventListener('click', function () {
+    window.Sound.progression(state.saved.map(function (c) { return K.chordPitches(c.root, c.typeId, c.bass, 48); }), 1.1);
+  });
+  el.down.addEventListener('click', function () { transpose(-1); });
+  el.up.addEventListener('click', function () { transpose(1); });
+  el.share.addEventListener('click', function () {
+    const list = state.saved.map(function (c) { return c.root + '.' + c.typeId + '.' + c.bass; }).join(',');
+    window.tabsApp.share('#acordes?lista=' + encodeURIComponent(list), el.share);
+  });
+  for (let i = 0; i <= 9; i++) {
+    const o = document.createElement('option');
+    o.value = String(i);
+    o.textContent = i === 0 ? 'Sin capo' : 'Traste ' + i;
+    el.capo.appendChild(o);
+  }
+  el.capo.addEventListener('change', function () { state.capo = Number(el.capo.value); renderCapo(); });
 
   el.clearBoard.addEventListener('click', function () {
     state.positions.clear();
@@ -221,9 +336,26 @@
     state.positions.clear();
     state.reading = 0;
     render();
+    renderCapo();
   }
   document.addEventListener('instrumentchange', function () { if (!isPiano()) resetBoard(); });
   document.addEventListener('instrumentmodechange', resetBoard);
+
+  // Link compartido: #acordes?lista=<raíz>.<tipo>.<bajo>,...
+  function applyParams(params) {
+    const list = params.get('lista');
+    if (!list) return;
+    const out = [];
+    decodeURIComponent(list).split(',').forEach(function (item) {
+      const p = item.split('.');
+      const root = Number(p[0]);
+      const bass = Number(p[2]);
+      if (root >= 0 && root < 12 && bass >= 0 && bass < 12 && K.typeById(p[1])) {
+        out.push({ root: root, typeId: p[1], bass: bass });
+      }
+    });
+    if (out.length) { state.saved = out; renderSaved(); }
+  }
 
   function render() {
     const cfg = config();
@@ -237,5 +369,5 @@
   render();
   renderSaved();
 
-  window.chordsApp = { state: state, render: render };
+  window.chordsApp = { state: state, render: render, applyParams: applyParams };
 })();

@@ -95,3 +95,39 @@ test('calidad para el círculo de quintas', () => {
 test('alturas de las cuerdas al aire (afinación estándar)', () => {
   assert.deepEqual(K.openPitches(['E', 'A', 'D', 'G', 'B', 'E']), [4, 9, 14, 19, 23, 28]);
 });
+
+test('nombres bien escritos', () => {
+  const bb = id('A# D F');
+  assert.equal(bb.exact[0].label, 'Bb');
+  assert.deepEqual(bb.exact[0].tones.map((t) => t.name), ['Bb', 'D', 'F']);
+  assert.equal(id('D F# A C#').exact[0].label, 'Dmaj7');
+  assert.equal(id('D# G A#').exact[0].label, 'Eb');
+  assert.equal(id('G A# D', 'G').exact[0].label, 'Gm');
+  assert.deepEqual(id('G A# D', 'G').exact[0].tones.map((t) => t.name), ['G', 'Bb', 'D']);
+});
+
+test('chordInfo arma la etiqueta con bajo', () => {
+  assert.equal(K.chordInfo(0, 'maj', 4).label, 'C/E');
+  assert.equal(K.chordInfo(10, 'm7').label, 'Bbm7');
+});
+
+test('qué escala tocar sobre cada acorde', () => {
+  const C = 0;
+  assert.equal(K.chordScale(7, '7', C).scale, 'Mixolidio');
+  assert.equal(K.chordScale(7, '7', C).numeral, 'V');
+  assert.equal(K.chordScale(2, 'm7', C).scale, 'Dórico');
+  assert.equal(K.chordScale(4, 'min', C).scale, 'Frigio');
+  assert.equal(K.chordScale(5, 'maj7', C).scale, 'Lidio');
+  assert.equal(K.chordScale(11, 'm7b5', C).scale, 'Locrio');
+  // fuera de la tonalidad: según el tipo
+  const out = K.chordScale(10, '7', C);
+  assert.equal(out.diatonic, false);
+  assert.equal(out.scale, 'Mixolidio');
+  assert.equal(K.chordScale(0, '7', C).diatonic, false); // C7 no es diatónico en C
+  assert.equal(K.chordScale(9, 'min', null).scale, 'Dórico');
+});
+
+test('alturas para escuchar un acorde', () => {
+  assert.deepEqual(K.chordPitches(0, 'maj', null, 48), [48, 52, 55]);
+  assert.deepEqual(K.chordPitches(0, 'maj', 4, 48), [40, 48, 52, 55]);
+});

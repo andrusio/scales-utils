@@ -81,7 +81,8 @@ test('grados de A mayor: verdes (mayor) y rosas (menor)', () => {
 test('etiquetas de acordes y enarmonías', () => {
   assert.equal(C.chordLabel({ root: pc('F#'), quality: 'minor' }), 'F#m');
   assert.equal(C.chordLabel({ root: pc('G#'), quality: 'dim' }), 'G#°');
-  assert.equal(C.chordAliasLabel({ root: pc('A#'), quality: 'major' }), 'Bb');
+  assert.equal(C.chordLabel({ root: pc('A#'), quality: 'major' }), 'Bb');
+  assert.equal(C.chordAliasLabel({ root: pc('A#'), quality: 'major' }), 'A#');
   assert.equal(C.chordAliasLabel({ root: pc('A'), quality: 'major' }), null);
 });
 
@@ -123,9 +124,28 @@ test('acordes que no entran en ninguna tonalidad quedan marcados como afuera', (
   assert.equal(s.complete, false);
   assert.equal(s.center, pc('A'));
   assert.equal(s.outside.length, 1);
-  assert.equal(C.chordLabel(s.outside[0]), 'A#');
+  assert.equal(C.chordLabel(s.outside[0]), 'Bb');
 });
 
 test('sin acordes no hay sugerencia', () => {
   assert.equal(C.suggestFromChords([]), null);
+});
+
+test('acordes diatónicos escritos en la tonalidad', () => {
+  assert.deepEqual(C.diatonicChords(pc('F'), false).map((c) => c.label), ['F', 'Gm', 'Am', 'Bb', 'C', 'Dm', 'E°']);
+  assert.deepEqual(C.diatonicChords(pc('C'), true).map((c) => c.label), ['Cmaj7', 'Dm7', 'Em7', 'Fmaj7', 'G7', 'Am7', 'Bm7b5']);
+});
+
+test('progresiones en una tonalidad', () => {
+  const pop = C.PROGRESSIONS.find((p) => p.name === 'Pop');
+  assert.deepEqual(C.progressionChords(pc('G'), pop.numerals, false).map((c) => c.label), ['G', 'D', 'Em', 'C']);
+  const jazz = C.PROGRESSIONS.find((p) => p.numerals.join() === 'ii,V,I');
+  assert.deepEqual(C.progressionChords(pc('A#'), jazz.numerals, true).map((c) => c.label), ['Cm7', 'F7', 'Bbmaj7']);
+});
+
+test('nombres de tonalidades', () => {
+  assert.equal(C.keyName(pc('A#'), 'major'), 'Bb');
+  assert.equal(C.keyName(pc('C#'), 'major'), 'Db');
+  assert.equal(C.keyName(pc('G#'), 'minor'), 'G#');
+  assert.equal(C.chordLabel({ root: pc('F'), quality: 'dim' }), 'F°');
 });
