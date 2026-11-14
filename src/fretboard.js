@@ -10,6 +10,7 @@
   // columna por traste (0 = al aire), más la fila de números y marcas.
   // `cellClass(stringIndex, fret, note)` devuelve clases extra para cada casilla.
   function render(container, config, cellClass) {
+    container.className = 'fretboard';
     container.innerHTML = '';
     const rows = Core.renderOrder(config.tuning);
     for (const row of rows) {

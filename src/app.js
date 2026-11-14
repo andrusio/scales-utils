@@ -17,11 +17,15 @@
   const importFile = document.getElementById('import-file');
   const ioError = document.getElementById('io-error');
 
-  // Dibuja el mástil; las notas seleccionadas se resaltan en todas las cuerdas y octavas.
+  // Dibuja el mástil o el teclado según el instrumento elegido; las notas
+  // seleccionadas se resaltan en todas las cuerdas y octavas.
   function renderFretboard() {
-    window.Fretboard.render(boardEl, state.config, function (_s, _f, note) {
-      return state.selected.has(note) ? 'selected' : '';
-    });
+    const isPiano = window.InstrumentMode.get() === 'piano';
+    document.getElementById('controls').hidden = isPiano;
+    boardEl.setAttribute('aria-label', isPiano ? 'Teclado' : 'Mástil');
+    const mark = function (note) { return state.selected.has(note) ? 'selected' : ''; };
+    if (isPiano) window.InstrumentMode.renderPiano(boardEl, mark);
+    else window.Fretboard.render(boardEl, state.config, function (_s, _f, note) { return mark(note); });
   }
 
   // Lista de escalas que contienen las notas marcadas, en el orden del programa.
@@ -31,7 +35,7 @@
     if (selected.length === 0) {
       const p = document.createElement('p');
       p.className = 'empty';
-      p.textContent = 'Clickeá notas en el mástil para ver qué escalas las contienen.';
+      p.textContent = 'Tocá notas en el instrumento para ver qué escalas las contienen.';
       resultsEl.appendChild(p);
       return;
     }
@@ -228,7 +232,7 @@
   }
 
   boardEl.addEventListener('click', function (event) {
-    const cell = event.target.closest('.note');
+    const cell = event.target.closest('[data-note]');
     if (!cell) return;
     toggleNote(cell.dataset.note);
   });
@@ -271,6 +275,8 @@
     if (importFile.files && importFile.files[0]) importConfig(importFile.files[0]);
     importFile.value = '';
   });
+
+  document.addEventListener('instrumentmodechange', renderFretboard);
 
   renderControls();
   renderAll();

@@ -9,6 +9,8 @@ Herramienta para encontrar escalas a partir de un conjunto de notas, en dos vers
 
 No requiere instalación ni servidor: abrí `index.html` en el navegador.
 
+**Instrumento (arriba a la derecha):** elegí *Guitarra* o *Piano* para toda la web; la elección se recuerda en el navegador. Con piano, los identificadores de escalas y de acordes muestran un teclado de dos octavas (C3–C5) en lugar del mástil.
+
 - **Instrumento**: definí la afinación (una nota por cuerda, de grave a agudo), la cantidad de cuerdas y de trastes, y presioná *Aplicar*.
 - **Guardar / Cargar instrumento**: descarga la configuración actual como un archivo `.json` y permite volver a cargarla más tarde.
 - **Mástil**: clickeá las notas para marcarlas; se resaltan en todas las cuerdas y octavas.
@@ -19,7 +21,7 @@ No requiere instalación ni servidor: abrí `index.html` en el navegador.
 
 Pestaña del medio (también se abre con `index.html#acordes`). Usa el mismo instrumento que el identificador de escalas.
 
-- **Mástil**: tocá las posiciones del acorde (podés marcar varias por cuerda; tocá de nuevo para quitar). La nota más grave define el bajo.
+- **Mástil o teclado**: tocá las posiciones del acorde (en guitarra podés marcar varias por cuerda; tocá de nuevo para quitar). La nota más grave define el bajo; en el piano las dos octavas alcanzan para armar cualquier inversión.
 - **Acorde**: muestra el nombre (tríadas, séptimas, sextas, sus, add9, novenas...), cada nota con su intervalo (*C tónica, E tercera mayor, G quinta justa*) y la inversión si el bajo no es la tónica (`C/E`). Si las mismas notas admiten otra lectura (C6 = Am7/C) se puede elegir. Con dos notas muestra el intervalo y los acordes posibles.
 - **Guardar acorde** arma una lista temporal; **Mostrar en círculo de quintas** la carga en el círculo. Allí cada acorde se ubica por su tríada (G7 → G, Bm7b5 → B°); los sus, aumentados y power chords no tienen lugar en el círculo y se avisa.
 

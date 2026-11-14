@@ -5,7 +5,7 @@
   const ALIAS = { 1: 'Db', 3: 'Eb', 6: 'Gb', 8: 'Ab', 10: 'Bb' };
 
   const state = {
-    positions: new Map(), // "cuerda:traste" -> {string, fret}
+    positions: new Map(), // "cuerda:traste" (guitarra) o "p<altura>" (piano) -> {pitch}
     reading: 0,           // lectura elegida entre las exactas
     saved: [],            // acordes guardados: {label, root, triad, baseLabel}
   };
@@ -28,15 +28,15 @@
     return K.NAMES[pc] + (ALIAS[pc] ? '<span class="alias">/' + ALIAS[pc] + '</span>' : '');
   }
 
-  // Notas marcadas (clases de altura) y la más grave, según las cuerdas al aire.
+  function isPiano() { return window.InstrumentMode.get() === 'piano'; }
+
+  // Notas marcadas (clases de altura) y la más grave.
   function analyze() {
-    const cfg = config();
-    const open = K.openPitches(cfg.tuning);
     let bassPitch = Infinity;
     let bassPc = null;
     const pcs = [];
     state.positions.forEach(function (p) {
-      const pitch = open[p.string] + p.fret;
+      const pitch = p.pitch;
       const pc = ((pitch % 12) + 12) % 12;
       pcs.push(pc);
       if (pitch < bassPitch) { bassPitch = pitch; bassPc = pc; }
@@ -51,19 +51,35 @@
 
   // ---- Mástil ----
   function renderBoard(reading) {
-    window.Fretboard.render(el.board, config(), function (s, f, note) {
-      if (!state.positions.has(s + ':' + f)) return '';
+    const mark = function (key, note) {
+      if (!state.positions.has(key)) return '';
       const isRoot = reading && K.NAMES[reading.root] === note;
       return 'selected' + (isRoot ? ' chord-root' : '');
-    });
+    };
+    el.board.setAttribute('aria-label', isPiano() ? 'Teclado para armar acordes' : 'Mástil para armar acordes');
+    if (isPiano()) {
+      window.InstrumentMode.renderPiano(el.board, function (note, pitch) { return mark('p' + pitch, note); });
+    } else {
+      window.Fretboard.render(el.board, config(), function (s, f, note) { return mark(s + ':' + f, note); });
+    }
   }
 
   el.board.addEventListener('click', function (e) {
-    const cell = e.target.closest('.note');
+    const cell = e.target.closest('[data-note]');
     if (!cell) return;
-    const key = cell.dataset.string + ':' + cell.dataset.fret;
+    let key;
+    let pitch;
+    if (cell.dataset.pitch !== undefined) {
+      pitch = Number(cell.dataset.pitch);
+      key = 'p' + pitch;
+    } else {
+      const s = Number(cell.dataset.string);
+      const f = Number(cell.dataset.fret);
+      key = s + ':' + f;
+      pitch = K.openPitches(config().tuning)[s] + f;
+    }
     if (state.positions.has(key)) state.positions.delete(key);
-    else state.positions.set(key, { string: Number(cell.dataset.string), fret: Number(cell.dataset.fret) });
+    else state.positions.set(key, { pitch: pitch });
     state.reading = 0;
     render();
   });
@@ -83,7 +99,7 @@
   function renderResult(r) {
     const reading = currentReading(r);
     if (!r) {
-      el.result.innerHTML = '<p class="empty">Tocá notas en el mástil para formar un acorde. Volvé a tocar una nota para quitarla.</p>';
+      el.result.innerHTML = '<p class="empty">Tocá notas en el instrumento para formar un acorde. Volvé a tocar una nota para quitarla.</p>';
       return;
     }
 
@@ -140,7 +156,7 @@
   function renderSaved() {
     el.saved.innerHTML = '';
     if (!state.saved.length) {
-      el.saved.innerHTML = '<p class="empty">Todavía no guardaste acordes. Armá uno en el mástil y tocá “Guardar acorde”.</p>';
+      el.saved.innerHTML = '<p class="empty">Todavía no guardaste acordes. Armá uno en el instrumento y tocá “Guardar acorde”.</p>';
     }
     state.saved.forEach(function (c, i) {
       const chip = document.createElement('span');
@@ -200,16 +216,19 @@
 
   el.editInstrument.addEventListener('click', function () { window.tabsApp.show('scales'); });
 
-  // Si cambia el instrumento, las posiciones marcadas dejan de tener sentido.
-  document.addEventListener('instrumentchange', function () {
+  // Si cambia el instrumento (o su afinación), las posiciones marcadas dejan de tener sentido.
+  function resetBoard() {
     state.positions.clear();
     state.reading = 0;
     render();
-  });
+  }
+  document.addEventListener('instrumentchange', function () { if (!isPiano()) resetBoard(); });
+  document.addEventListener('instrumentmodechange', resetBoard);
 
   function render() {
     const cfg = config();
-    el.instrument.textContent = 'Afinación: ' + cfg.tuning.join(' ') + ' · ' + cfg.frets + ' trastes';
+    el.editInstrument.hidden = isPiano();
+    el.instrument.textContent = isPiano() ? '' : 'Afinación: ' + cfg.tuning.join(' ') + ' · ' + cfg.frets + ' trastes';
     const r = analyze();
     renderBoard(currentReading(r));
     renderResult(r);

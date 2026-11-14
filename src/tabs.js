@@ -2,8 +2,8 @@
   'use strict';
 
   const VIEWS = {
-    scales: { hash: '', subtitle: 'Clickeá las notas en el mástil para ver qué escalas las contienen.' },
-    chords: { hash: '#acordes', subtitle: 'Tocá notas en el mástil para ver qué acorde forman y de qué intervalos está hecho.' },
+    scales: { hash: '', subtitle: 'Tocá notas en el instrumento para ver qué escalas las contienen.' },
+    chords: { hash: '#acordes', subtitle: 'Tocá notas en el instrumento para ver qué acorde forman y de qué intervalos está hecho.' },
     circle: { hash: '#circulo', subtitle: 'Elegí una nota o cargá los acordes de una canción para ver el círculo y los modos.' },
   };
 

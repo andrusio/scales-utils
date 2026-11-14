@@ -489,3 +489,97 @@ button.primary:hover { filter: brightness(1.08); background: var(--accent); }
 button:disabled { opacity: .45; cursor: not-allowed; }
 #saved-note:empty { display: none; }
 #saved-note { margin-top: .6rem; }
+
+/* ---- Selector de instrumento (cabecera) ---- */
+.topbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: .6rem 1rem;
+}
+.topbar h1 { margin-bottom: 0; }
+.mode-select { display: flex; align-items: center; gap: .6rem; }
+.mode-label { font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.mode-select .seg { margin-top: 0; }
+
+/* ---- Teclado de piano ---- */
+.piano {
+  --pad: .6rem;
+  --w: clamp(1.15rem, calc((100vw - 3.6rem) / 15), 3.6rem);
+  --h: calc(var(--w) * 4.4);
+  --bw: calc(var(--w) * .62);
+  position: relative;
+  display: inline-flex;
+  padding: var(--pad) var(--pad) 1.5rem;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #262c36, #14181e);
+  border: 1px solid #0a0c10;
+  box-shadow: var(--shadow), inset 0 2px 0 rgba(255, 255, 255, .05);
+}
+.pkey {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.pkey.white {
+  width: var(--w);
+  height: var(--h);
+  padding-bottom: .4rem;
+  background: linear-gradient(180deg, #f2f1ec 0%, #fdfdfb 70%, #e4e2da 100%);
+  box-shadow: inset -1px 0 0 #9b9a94, inset 0 -4px 0 #cfccc2;
+  border-radius: 0 0 6px 6px;
+}
+.pkey.white:first-child { box-shadow: inset 1px 0 0 #9b9a94, inset -1px 0 0 #9b9a94, inset 0 -4px 0 #cfccc2; }
+.pkey.black {
+  position: absolute;
+  top: var(--pad);
+  z-index: 2;
+  width: var(--bw);
+  height: calc(var(--h) * .62);
+  padding-bottom: .3rem;
+  background: linear-gradient(180deg, #2b3038 0%, #0d0f13 100%);
+  border-radius: 0 0 4px 4px;
+  box-shadow: 0 3px 4px rgba(0, 0, 0, .5), inset 0 -3px 0 #3b414b;
+}
+.pkey.white:hover { background: linear-gradient(180deg, #e9e7df, #f4f3ee); }
+.pkey.black:hover { background: linear-gradient(180deg, #3a404a, #1a1d22); }
+
+.pkey .label {
+  display: grid;
+  place-items: center;
+  width: min(1.55rem, calc(var(--w) * .82));
+  aspect-ratio: 1;
+  border-radius: 50%;
+  font-family: var(--mono);
+  font-size: min(.68rem, calc(var(--w) * .34));
+  color: #8d8b83;
+  transition: background-color .12s ease, color .12s ease, transform .12s ease;
+}
+.pkey.black .label { width: calc(var(--bw) * .92); font-size: min(.58rem, calc(var(--bw) * .4)); color: #6f7580; }
+.pkey .octave {
+  position: absolute;
+  bottom: -1.2rem;
+  font-family: var(--mono);
+  font-size: .62rem;
+  color: var(--muted);
+}
+
+.pkey.white.selected { background: linear-gradient(180deg, #f6e7c8, #fbf1dc 70%, #ead7ae); }
+.pkey.black.selected { background: linear-gradient(180deg, #5a4523, #2a2010); }
+.pkey.selected .label {
+  color: var(--accent-ink);
+  font-weight: 700;
+  background: radial-gradient(circle at 35% 30%, #ffd89a, var(--accent));
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, .25), 0 3px 8px rgba(242, 180, 90, .5);
+}
+.pkey.selected.chord-root .label {
+  background: radial-gradient(circle at 35% 30%, #b8f5cd, var(--ok));
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, .25), 0 3px 8px rgba(95, 208, 138, .5);
+}
+#chord-instrument:empty { display: none; }

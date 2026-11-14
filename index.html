@@ -3,12 +3,18 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Utilidad de escalas</title>
+  <title>Utilidades de teoría musical</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <header>
-    <h1>Utilidad de escalas</h1>
+    <div class="topbar">
+      <h1>Utilidades de teoría musical</h1>
+      <div class="mode-select">
+        <span class="mode-label">Instrumento</span>
+        <div id="mode-seg" class="seg" role="group" aria-label="Instrumento de toda la web"></div>
+      </div>
+    </div>
     <nav class="tabs" role="tablist" aria-label="Herramientas">
       <button type="button" role="tab" id="tab-scales" data-view="scales" aria-controls="view-scales" aria-selected="true">Identificador de escalas</button>
       <button type="button" role="tab" id="tab-chords" data-view="chords" aria-controls="view-chords" aria-selected="false">Identificador de acordes</button>
@@ -48,11 +54,11 @@
     <p class="instrument-line">
       <span id="chord-instrument"></span>
       <button type="button" class="link-btn" id="chord-edit-instrument">Cambiar instrumento</button>
-      <button type="button" class="link-btn" id="chord-clear-board">Limpiar mástil</button>
+      <button type="button" class="link-btn" id="chord-clear-board">Limpiar</button>
     </p>
 
     <section class="board-wrap">
-      <div id="chord-fretboard" class="fretboard" aria-label="Mástil para armar acordes"></div>
+      <div id="chord-fretboard" class="fretboard"></div>
     </section>
 
     <section class="panels">
@@ -104,6 +110,7 @@
 
   <script src="src/scales.js"></script>
   <script src="src/fretboard.js"></script>
+  <script src="src/instrument.js"></script>
   <script src="src/app.js"></script>
   <script src="src/circle.js"></script>
   <script src="src/circle-app.js"></script>
