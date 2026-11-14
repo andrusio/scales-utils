@@ -17,15 +17,15 @@
       </div>
     </div>
     <nav class="tabs" role="tablist" aria-label="Herramientas">
-      <button type="button" role="tab" id="tab-scales" data-view="scales" aria-controls="view-scales" aria-selected="true">Identificador de escalas</button>
+      <button type="button" role="tab" id="tab-circle" data-view="circle" aria-controls="view-circle" aria-selected="true">Círculo de quintas</button>
       <button type="button" role="tab" id="tab-chords" data-view="chords" aria-controls="view-chords" aria-selected="false">Identificador de acordes</button>
-      <button type="button" role="tab" id="tab-circle" data-view="circle" aria-controls="view-circle" aria-selected="false">Círculo de quintas</button>
+      <button type="button" role="tab" id="tab-scales" data-view="scales" aria-controls="view-scales" aria-selected="false">Identificador de escalas</button>
       <button type="button" role="tab" id="tab-practice" data-view="practice" aria-controls="view-practice" aria-selected="false">Práctica</button>
     </nav>
     <p class="subtitle" id="subtitle"></p>
   </header>
 
-  <main id="view-scales" role="tabpanel" aria-labelledby="tab-scales">
+  <main id="view-scales" role="tabpanel" aria-labelledby="tab-scales" hidden>
     <section class="panel viewer" aria-label="Ver una escala">
       <div class="viewer-row">
         <h2>Ver una escala</h2>
@@ -115,7 +115,7 @@
     </section>
   </main>
 
-  <main id="view-circle" role="tabpanel" aria-labelledby="tab-circle" hidden>
+  <main id="view-circle" role="tabpanel" aria-labelledby="tab-circle">
     <div class="circle-layout">
       <section class="panel wheel-card">
         <div class="wheel-toolbar">
