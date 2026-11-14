@@ -7,7 +7,7 @@ Herramienta para encontrar escalas a partir de un conjunto de notas, en dos vers
 
 ## Versión web
 
-No requiere instalación ni servidor: abrí `index.html` en el navegador.
+No requiere instalación ni servidor: abrí `index.html` en el navegador. Las pestañas son, en orden: **Círculo de quintas** (la de inicio), **Identificador de acordes**, **Identificador de escalas** y **Práctica**.
 
 **Instrumento (arriba a la derecha):** elegí *Cuerdas* o *Piano* para toda la web; la elección se recuerda en el navegador. Con piano, las herramientas muestran un teclado de dos octavas (C3–C5) en lugar del mástil. El botón **Sonido** activa o desactiva que las notas suenen al tocarlas (los botones ▶ suenan siempre).
 
@@ -22,7 +22,7 @@ Las notas se escriben según la escala o el acorde (en F mayor aparece **Bb**, n
 
 ### Identificador de acordes
 
-Pestaña del medio (también se abre con `index.html#acordes`). Usa el mismo instrumento que el identificador de escalas.
+Segunda pestaña (también se abre con `index.html#acordes`). Usa el mismo instrumento que el identificador de escalas.
 
 - **Mástil o teclado**: tocá las posiciones del acorde (en guitarra podés marcar varias por cuerda; tocá de nuevo para quitar). La nota más grave define el bajo; en el piano las dos octavas alcanzan para armar cualquier inversión.
 - **Acorde**: muestra el nombre (tríadas, séptimas, sextas, sus, add9, novenas...), cada nota con su intervalo (*C tónica, E tercera mayor, G quinta justa*) y la inversión si el bajo no es la tónica (`C/E`). Si las mismas notas admiten otra lectura (C6 = Am7/C) se puede elegir. Con dos notas muestra el intervalo y los acordes posibles.
@@ -32,7 +32,7 @@ Pestaña del medio (también se abre con `index.html#acordes`). Usa el mismo ins
 
 ### Círculo de quintas
 
-Segunda pestaña de la versión web (también se abre con `index.html#circulo`).
+Pestaña de inicio de la versión web (también se abre con `index.html#circulo`).
 
 - **Disco**: tres anillos (tonalidades mayores, sus relativas menores y el acorde disminuido). La "ventana" de arriba muestra la tonalidad central con sus grados: en **verde** el grado si es mayor, en **rosa** si la tónica es la relativa menor, y la función armónica (T tónica, SD subdominante, D dominante).
 - **Nota fundamental + Mayor/menor**: muestra en el disco los 7 modos de esa nota. Cada modo usa las notas de una escala mayor "padre" (A lidio = E mayor, A mixolidio = D mayor, A frigio = F mayor, ...) y su papelito aparece junto a esa escala, con el truco para hallarla desde el círculo (p. ej. A dórico = *vi +½*, A eólico = *iii −½*).

@@ -1,12 +1,13 @@
 (function () {
   'use strict';
 
-  // Pestañas. Cada una tiene su hash (#acordes, #circulo...) y puede recibir
-  // parámetros para links compartidos: #acordes?lista=...
+  // Pestañas. Cada una tiene su hash (#acordes, #escalas...) y puede recibir
+  // parámetros para links compartidos: #acordes?lista=... La de inicio (sin
+  // hash) es el círculo de quintas.
   const VIEWS = {
-    scales:   { hashes: ['', '#escalas'], app: 'scalesApp',   subtitle: 'Tocá notas en el instrumento para ver qué escalas las contienen, o elegí una escala para verla.' },
+    scales:   { hashes: ['#escalas'],     app: 'scalesApp',   subtitle: 'Tocá notas en el instrumento para ver qué escalas las contienen, o elegí una escala para verla.' },
     chords:   { hashes: ['#acordes'],     app: 'chordsApp',   subtitle: 'Tocá notas en el instrumento para ver qué acorde forman y de qué intervalos está hecho.' },
-    circle:   { hashes: ['#circulo'],     app: 'circleApp',   subtitle: 'Elegí una nota o cargá los acordes de una canción para ver el círculo y los modos.' },
+    circle:   { hashes: ['', '#circulo'], app: 'circleApp',   subtitle: 'Elegí una nota o cargá los acordes de una canción para ver el círculo y los modos.' },
     practice: { hashes: ['#practica'],    app: 'practiceApp', subtitle: 'Ejercicios cortos para entrenar el oído y la teoría.' },
   };
 
@@ -14,7 +15,7 @@
   const tabs = Array.prototype.slice.call(document.querySelectorAll('.tabs [role="tab"]'));
 
   function show(view) {
-    if (!VIEWS[view]) view = 'scales';
+    if (!VIEWS[view]) view = 'circle';
     tabs.forEach(function (tab) {
       const active = tab.dataset.view === view;
       tab.setAttribute('aria-selected', String(active));
@@ -70,7 +71,7 @@
   // Vista inicial y parámetros del link.
   const parts = location.hash.split('?');
   const params = new URLSearchParams(parts[1] || '');
-  const initial = Object.keys(VIEWS).filter(function (v) { return VIEWS[v].hashes.indexOf(parts[0]) >= 0; })[0] || 'scales';
+  const initial = Object.keys(VIEWS).filter(function (v) { return VIEWS[v].hashes.indexOf(parts[0]) >= 0; })[0] || 'circle';
   show(initial);
   const app = window[VIEWS[initial].app];
   if (parts[1] && app && app.applyParams) app.applyParams(params);
