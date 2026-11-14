@@ -38,20 +38,24 @@
       <div class="viewer-row viewer-opts">
         <div id="view-labels" class="seg" role="group" aria-label="Mostrar grados o notas"></div>
         <div id="view-pos" class="seg wrap" role="group" aria-label="Posición en el mástil"></div>
-        <button type="button" id="view-share" class="link-btn">Copiar link</button>
+        <button type="button" id="view-share" class="share-btn" aria-label="Compartir" title="Compartir link"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg></button>
       </div>
       <div id="view-info" class="view-info" hidden></div>
     </section>
 
-    <section id="controls" class="controls" aria-label="Instrumento">
+    <details id="controls" class="controls">
+      <summary>Modificar instrumento de cuerdas</summary>
       <div id="controls-main" class="controls-main"></div>
       <div class="io">
-        <button type="button" id="save-btn" title="Descarga la afinación y los trastes como archivo .json">Guardar instrumento</button>
-        <button type="button" id="load-btn" title="Carga una afinación guardada desde un archivo .json">Cargar instrumento</button>
+        <span class="ctl-label">Instrumento</span>
+        <div class="btn-group">
+          <button type="button" id="save-btn" title="Descarga la afinación y los trastes como archivo .json">Guardar</button>
+          <button type="button" id="load-btn" title="Carga una afinación guardada desde un archivo .json">Cargar</button>
+        </div>
         <input type="file" id="import-file" accept=".json,application/json" hidden>
         <span id="io-error" class="error"></span>
       </div>
-    </section>
+    </details>
 
     <section class="board-wrap">
       <div id="fretboard" class="fretboard" aria-label="Mástil"></div>
@@ -94,7 +98,7 @@
             <button type="button" id="transpose-down" aria-label="Bajar medio tono">−½</button>
             <button type="button" id="transpose-up" aria-label="Subir medio tono">+½</button>
           </span>
-          <button type="button" id="saved-share" class="link-btn">Copiar link</button>
+          <button type="button" id="saved-share" class="share-btn" aria-label="Compartir" title="Compartir link"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg></button>
         </div>
         <div id="capo-row" class="capo-row" hidden>
           <label for="capo">Capo</label>
@@ -136,7 +140,7 @@
           <div id="chord-quality" class="seg" role="group" aria-label="Tipo de acorde"></div>
           <div id="chord-chips" class="chips"></div>
           <div id="chord-keys" class="keys"></div>
-          <button type="button" id="circle-share" class="link-btn" hidden>Copiar link</button>
+          <button type="button" id="circle-share" class="share-btn" aria-label="Compartir" title="Compartir link" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg></button>
         </section>
 
         <section class="panel">

@@ -5,7 +5,7 @@
   const NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
   const BLACK = { 1: true, 3: true, 6: true, 8: true, 10: true };
   const STORAGE_KEY = 'scales-utils.instrument';
-  const MODES = [{ value: 'guitar', label: 'Guitarra' }, { value: 'piano', label: 'Piano' }];
+  const MODES = [{ value: 'guitar', label: 'Cuerdas' }, { value: 'piano', label: 'Piano' }];
 
   // Rango del teclado: dos octavas y la C final (C3 → C5), en semitonos absolutos.
   const PIANO_LOW = 48;
@@ -62,7 +62,7 @@
     }
   }
 
-  // Selector Guitarra / Piano de la cabecera.
+  // Selector Cuerdas / Piano de la cabecera.
   function renderSelector() {
     const seg = document.getElementById('mode-seg');
     if (!seg) return;

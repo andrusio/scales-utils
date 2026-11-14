@@ -33,19 +33,37 @@
     tab.addEventListener('click', function () { show(tab.dataset.view); });
   });
 
-  // Copia un link a la vista actual (`hash` con sus parámetros) y avisa en `btn`.
+  // Comparte un link a la vista actual (`hash` con sus parámetros): con el menú
+  // de compartir del sistema si existe (celular), o copiándolo y avisando en `btn`.
   function share(hash, btn) {
     const url = location.href.split('#')[0] + hash;
     const done = function () {
       if (!btn) return;
-      const old = btn.textContent;
-      btn.textContent = '¡Link copiado!';
-      setTimeout(function () { btn.textContent = old; }, 1600);
+      btn.classList.add('copied');
+      setTimeout(function () { btn.classList.remove('copied'); }, 1600);
     };
-    if (navigator.clipboard && window.isSecureContext) {
-      navigator.clipboard.writeText(url).then(done, function () { window.prompt('Copiá este link:', url); });
+    // Copia con el método viejo (sirve aunque no haya permiso de portapapeles
+    // o la página esté abierta como archivo); si tampoco anda, muestra el link.
+    const fallback = function () {
+      const ta = document.createElement('textarea');
+      ta.value = url;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      let ok = false;
+      try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+      document.body.removeChild(ta);
+      if (ok) done();
+      else window.prompt('Copiá este link:', url);
+    };
+    if (navigator.share && /^https?:/.test(location.protocol)) {
+      navigator.share({ title: document.title, url: url }).catch(function () { /* cancelado */ });
+    } else if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(url).then(done, fallback);
     } else {
-      window.prompt('Copiá este link:', url);
+      fallback();
     }
   }
 

@@ -9,12 +9,12 @@ Herramienta para encontrar escalas a partir de un conjunto de notas, en dos vers
 
 No requiere instalación ni servidor: abrí `index.html` en el navegador.
 
-**Instrumento (arriba a la derecha):** elegí *Guitarra* o *Piano* para toda la web; la elección se recuerda en el navegador. Con piano, las herramientas muestran un teclado de dos octavas (C3–C5) en lugar del mástil. El botón **Sonido** activa o desactiva que las notas suenen al tocarlas (los botones ▶ suenan siempre).
+**Instrumento (arriba a la derecha):** elegí *Cuerdas* o *Piano* para toda la web; la elección se recuerda en el navegador. Con piano, las herramientas muestran un teclado de dos octavas (C3–C5) en lugar del mástil. El botón **Sonido** activa o desactiva que las notas suenen al tocarlas (los botones ▶ suenan siempre).
 
-Las notas se escriben según la escala o el acorde (en F mayor aparece **Bb**, no A#), con la otra enarmonía al lado cuando ayuda. Los botones **Copiar link** guardan en la dirección lo que estás viendo (una escala, una lista de acordes, el círculo) para compartirlo.
+Las notas se escriben según la escala o el acorde (en F mayor aparece **Bb**, no A#), con la otra enarmonía al lado cuando ayuda. Los botones de **compartir** guardan en un link lo que estás viendo (una escala, una lista de acordes, el círculo) para compartirlo.
 
-- **Instrumento**: definí la afinación (una nota por cuerda, de grave a agudo), la cantidad de cuerdas y de trastes, y presioná *Aplicar*.
-- **Guardar / Cargar instrumento**: descarga la configuración actual como un archivo `.json` y permite volver a cargarla más tarde.
+- **Modificar instrumento de cuerdas** (caja plegable): cada cuerda tiene flechas ▲▼ para subirla o bajarla medio tono; *Cuerdas* − / + quita o agrega una cuerda y *Trastes* define el largo del mástil. Los cambios se aplican al instante.
+- **Instrumento: Guardar / Cargar**: descarga la configuración actual como un archivo `.json` y permite volver a cargarla más tarde.
 - **Mástil**: clickeá las notas para marcarlas; se resaltan en todas las cuerdas y octavas.
 - **Escalas**: muestra las 10 escalas más parecidas a la selección. La tarjeta es **verde** si contiene todas las notas marcadas (similitud 100%) y **naranja** si falta alguna (se indican cuáles).
 - **Modos**: si hay escalas Mayor o Natural Menor que contienen todas las notas marcadas, se listan los 7 modos del mismo conjunto de notas y se resaltan en verde los que corresponden a esas escalas.

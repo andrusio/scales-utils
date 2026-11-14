@@ -307,57 +307,70 @@
     }
   }
 
-  // Editor de configuración: un campo por cuerda (grave → agudo), botones para
-  // agregar/quitar cuerdas, input de trastes y botón Aplicar.
+  // Editor de configuración: cada cuerda con flechas para subir o bajar medio
+  // tono, grupo de botones para agregar/quitar cuerdas y cantidad de trastes.
+  // Los cambios se aplican al instante.
   function renderControls() {
     controlsEl.innerHTML = '';
 
-    const tuningLabel = document.createElement('label');
-    tuningLabel.textContent = 'Afinación (grave → agudo):';
-    controlsEl.appendChild(tuningLabel);
+    const tuningGroup = document.createElement('div');
+    tuningGroup.className = 'ctl-group';
+    const tuningLabel = document.createElement('span');
+    tuningLabel.className = 'ctl-label';
+    tuningLabel.textContent = 'Afinación (grave → agudo)';
+    tuningGroup.appendChild(tuningLabel);
 
     const fields = document.createElement('div');
     fields.className = 'tuning-fields';
-    fields.id = 'tuning-fields';
-    state.config.tuning.forEach(function (note) {
-      fields.appendChild(makeTuningInput(note));
+    state.config.tuning.forEach(function (note, i) {
+      fields.appendChild(makeTuningStepper(note, i));
     });
-    controlsEl.appendChild(fields);
+    tuningGroup.appendChild(fields);
+    controlsEl.appendChild(tuningGroup);
 
-    const addBtn = document.createElement('button');
-    addBtn.type = 'button';
-    addBtn.textContent = '+ cuerda';
-    addBtn.addEventListener('click', function () {
-      fields.appendChild(makeTuningInput('E'));
+    const stringsGroup = document.createElement('div');
+    stringsGroup.className = 'ctl-group';
+    stringsGroup.innerHTML = '<span class="ctl-label">Cuerdas</span>';
+    const btns = document.createElement('div');
+    btns.className = 'btn-group';
+    const minus = document.createElement('button');
+    minus.type = 'button';
+    minus.textContent = '−';
+    minus.setAttribute('aria-label', 'Quitar la cuerda más aguda');
+    minus.disabled = state.config.tuning.length <= 1;
+    minus.addEventListener('click', function () {
+      updateConfig({ tuning: state.config.tuning.slice(0, -1) });
     });
-    controlsEl.appendChild(addBtn);
-
-    const removeBtn = document.createElement('button');
-    removeBtn.type = 'button';
-    removeBtn.textContent = '- cuerda';
-    removeBtn.addEventListener('click', function () {
-      if (fields.lastElementChild) fields.removeChild(fields.lastElementChild);
+    const count = document.createElement('span');
+    count.className = 'btn-group-value';
+    count.textContent = String(state.config.tuning.length);
+    const plus = document.createElement('button');
+    plus.type = 'button';
+    plus.textContent = '+';
+    plus.setAttribute('aria-label', 'Agregar una cuerda aguda');
+    plus.addEventListener('click', function () {
+      // La cuerda nueva va una cuarta arriba de la más aguda.
+      const last = Core.noteIndex(state.config.tuning[state.config.tuning.length - 1]);
+      updateConfig({ tuning: state.config.tuning.concat([Core.NOTES[(last + 5) % 12]]) });
     });
-    controlsEl.appendChild(removeBtn);
+    btns.appendChild(minus);
+    btns.appendChild(count);
+    btns.appendChild(plus);
+    stringsGroup.appendChild(btns);
+    controlsEl.appendChild(stringsGroup);
 
-    const fretsLabel = document.createElement('label');
-    fretsLabel.textContent = 'Trastes:';
-    controlsEl.appendChild(fretsLabel);
-
+    const fretsGroup = document.createElement('div');
+    fretsGroup.className = 'ctl-group';
+    fretsGroup.innerHTML = '<label class="ctl-label" for="frets-input">Trastes</label>';
     const fretsInput = document.createElement('input');
     fretsInput.type = 'number';
     fretsInput.id = 'frets-input';
     fretsInput.min = String(Core.MIN_FRETS);
     fretsInput.max = String(Core.MAX_FRETS);
     fretsInput.value = String(state.config.frets);
-    controlsEl.appendChild(fretsInput);
-
-    const applyBtn = document.createElement('button');
-    applyBtn.type = 'button';
-    applyBtn.className = 'primary';
-    applyBtn.textContent = 'Aplicar';
-    applyBtn.addEventListener('click', function () { applyFromControls(); });
-    controlsEl.appendChild(applyBtn);
+    fretsInput.addEventListener('change', function () { updateConfig({ frets: Number(fretsInput.value) }); });
+    fretsGroup.appendChild(fretsInput);
+    controlsEl.appendChild(fretsGroup);
 
     const errEl = document.createElement('span');
     errEl.className = 'error';
@@ -365,30 +378,46 @@
     controlsEl.appendChild(errEl);
   }
 
-  function makeTuningInput(value) {
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.className = 'tuning-input';
-    input.value = value;
-    input.maxLength = 2;
-    return input;
+  // Una cuerda: nota al aire con flechas ▲ (subir medio tono) y ▼ (bajar).
+  function makeTuningStepper(note, i) {
+    const wrap = document.createElement('div');
+    wrap.className = 'tuning-step';
+    const step = function (delta) {
+      const tuning = state.config.tuning.slice();
+      tuning[i] = Core.NOTES[(Core.noteIndex(tuning[i]) + delta + 12) % 12];
+      updateConfig({ tuning: tuning });
+    };
+    const up = document.createElement('button');
+    up.type = 'button';
+    up.textContent = '▲';
+    up.setAttribute('aria-label', 'Subir la cuerda ' + (i + 1) + ' medio tono');
+    up.addEventListener('click', function () { step(1); });
+    const value = document.createElement('span');
+    value.className = 'tuning-note';
+    value.textContent = note;
+    const down = document.createElement('button');
+    down.type = 'button';
+    down.textContent = '▼';
+    down.setAttribute('aria-label', 'Bajar la cuerda ' + (i + 1) + ' medio tono');
+    down.addEventListener('click', function () { step(-1); });
+    wrap.appendChild(up);
+    wrap.appendChild(value);
+    wrap.appendChild(down);
+    return wrap;
   }
 
-  function applyFromControls() {
-    const fields = document.getElementById('tuning-fields');
-    const fretsInput = document.getElementById('frets-input');
-    const errEl = document.getElementById('controls-error');
-
-    const tuning = Array.prototype.slice.call(fields.querySelectorAll('.tuning-input'))
-      .map(function (i) { return i.value.trim(); });
-    const candidate = { version: 1, tuning: tuning, frets: Number(fretsInput.value) };
-
+  function updateConfig(changes) {
+    const candidate = {
+      version: 1,
+      tuning: changes.tuning || state.config.tuning,
+      frets: changes.frets !== undefined ? changes.frets : state.config.frets,
+    };
     const result = Core.validateConfig(candidate);
+    const errEl = document.getElementById('controls-error');
     if (!result.ok) {
       errEl.textContent = result.errors.join(' · ');
       return;
     }
-    errEl.textContent = '';
     applyConfig(result.config);
   }
 

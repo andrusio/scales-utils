@@ -83,7 +83,6 @@ input:focus-visible, button:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
-.tuning-input { width: 2.8rem; text-align: center; text-transform: uppercase; }
 #frets-input { width: 4.2rem; }
 
 button {
@@ -703,3 +702,99 @@ button.mode:hover { border-color: var(--accent); }
   .tabs [role="tab"] { padding: .55rem .7rem; font-size: .88rem; }
   .mode-select { flex-wrap: wrap; }
 }
+
+/* ---- Caja "Modificar instrumento de cuerdas" (colapsable) ---- */
+details.controls > summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  font-size: .8rem;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--muted);
+}
+details.controls > summary::-webkit-details-marker { display: none; }
+details.controls > summary::before { content: "▸"; color: var(--accent); transition: transform .15s; }
+details.controls[open] > summary::before { transform: rotate(90deg); }
+details.controls > summary:hover { color: var(--text); }
+details.controls[open] > summary { margin-bottom: .8rem; }
+.controls-main { gap: .8rem 1.4rem; align-items: flex-end; }
+.ctl-group { display: flex; flex-direction: column; gap: .35rem; }
+.ctl-label { font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+
+.tuning-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 2.6rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--bg);
+}
+.tuning-step button {
+  width: 100%;
+  border: 0;
+  border-radius: 0;
+  padding: .15rem 0;
+  font-size: .6rem;
+  line-height: 1.2;
+  color: var(--muted);
+  background: var(--surface-2);
+}
+.tuning-step button:hover { color: var(--accent); }
+.tuning-note { font-family: var(--mono); font-weight: 700; padding: .2rem 0; }
+
+.btn-group {
+  display: inline-flex;
+  align-items: stretch;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.btn-group button { border: 0; border-radius: 0; }
+.btn-group button + button,
+.btn-group button + .btn-group-value,
+.btn-group .btn-group-value + button { border-left: 1px solid var(--border); }
+.btn-group-value {
+  display: grid;
+  place-items: center;
+  min-width: 2.2rem;
+  font-family: var(--mono);
+  font-weight: 700;
+  background: var(--bg);
+}
+.io { gap: .6rem; }
+
+/* ---- Botón de compartir ---- */
+.share-btn {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 2.1rem;
+  height: 2.1rem;
+  padding: 0;
+  border-radius: 50%;
+}
+.share-btn svg { width: 1.05rem; height: 1.05rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+.share-btn:hover { color: var(--accent); }
+.share-btn.copied { color: var(--ok); border-color: var(--ok); }
+.share-btn.copied::after {
+  content: "¡Link copiado!";
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  padding: .2rem .5rem;
+  border-radius: 6px;
+  font-size: .75rem;
+  color: var(--accent-ink);
+  background: var(--ok);
+}
+#circle-share { margin-top: .6rem; }
+.controls .ctl-label { font-size: .72rem; }
+.tuning-step button { padding: .3rem 0; font-size: .68rem; }
+@media (max-width: 760px) { .tuning-step { width: 2.55rem; } .tuning-step button { padding: .45rem 0; } }
