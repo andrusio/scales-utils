@@ -114,8 +114,7 @@
     const cell = e.target.closest('[data-note]');
     if (!cell || state.answered) return;
     const info = window.InstrumentMode.cellInfo(cell, config());
-    if (state.positions.has(info.key)) state.positions.delete(info.key);
-    else { state.positions.set(info.key, { pitch: info.pitch }); window.Sound.tap(info.pitch); }
+    if (window.InstrumentMode.togglePosition(state.positions, info)) window.Sound.tap(info.pitch);
     el.feedback.textContent = '';
     renderBoard();
   });

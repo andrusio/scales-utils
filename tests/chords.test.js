@@ -131,3 +131,69 @@ test('alturas para escuchar un acorde', () => {
   assert.deepEqual(K.chordPitches(0, 'maj', null, 48), [48, 52, 55]);
   assert.deepEqual(K.chordPitches(0, 'maj', 4, 48), [40, 48, 52, 55]);
 });
+
+test('acordes nuevos: sextas con novena, add11 y suspendidos con séptima', () => {
+  assert.equal(id('C E G A D').exact[0].label, 'C6/9');
+  assert.equal(id('C D# G A D').exact[0].label, 'Cm6/9');
+  assert.equal(id('C E F G').exact[0].label, 'Cadd11');
+  assert.equal(id('C D# F G').exact[0].label, 'Cm(add11)');
+  assert.equal(id('C F G A# D').exact[0].label, 'C9sus4');
+  assert.equal(id('C D G A#').exact[0].label, 'C7sus2');
+});
+
+test('acordes nuevos: extensiones con notas omitidas', () => {
+  assert.equal(id('C E G A# D F').exact[0].label, 'C11');
+  assert.equal(id('C D# G A# D F').exact[0].label, 'Cm11');
+  assert.equal(id('C E G A# D A').exact[0].label, 'C13');
+  assert.equal(id('C E G B D A').exact[0].label, 'Cmaj13');
+  assert.equal(id('C D# G B D').exact[0].label, 'Cm(maj9)');
+  const c13 = id('C E A# A').exact[0];
+  assert.equal(c13.label, 'C13');
+  assert.equal(c13.omittedText, 'sin quinta, sin novena');
+  assert.deepEqual(c13.tones.filter((t) => t.omitted).map((t) => t.degree), ['5', '9']);
+});
+
+test('acordes nuevos: alterados', () => {
+  assert.equal(id('C E G A# C#').exact[0].label, 'C7b9');
+  assert.equal(id('C E G A# D#').exact[0].label, 'C7#9');
+  assert.equal(id('C E A# D#').exact[0].label, 'C7#9');
+  assert.equal(id('C E F# A#').exact[0].label, 'C7b5');
+  assert.equal(id('C E G A# F#').exact[0].label, 'C7#11');
+  assert.equal(id('C E G B F#').exact[0].label, 'Cmaj7#11');
+  assert.equal(id('C E G# B').exact[0].label, 'Cmaj7#5');
+  const hendrix = id('E G# B D G', 'E').exact[0];
+  assert.equal(hendrix.label, 'E7#9');
+  assert.equal(hendrix.tones.find((t) => t.degree === '#9').interval, 'Novena aumentada');
+});
+
+test('con 4 notas o más se prefiere la lectura con el bajo como tónica', () => {
+  const r = id('C E A D', 'C');
+  assert.equal(r.exact[0].label, 'C6/9');
+  assert.ok(r.exact.some((x) => x.label === 'Am(add11)/C'));
+  // con 3 notas manda la tríada completa
+  assert.equal(id('C E A', 'C').exact[0].label, 'Am/C');
+});
+
+test('escalas sugeridas para los acordes nuevos', () => {
+  const C = 0;
+  assert.equal(K.chordScale(7, '13', C).scale, 'Mixolidio');
+  assert.equal(K.chordScale(2, 'm11', C).scale, 'Dórico');
+  assert.equal(K.chordScale(5, 'maj7#11', C).scale, 'Lidio');
+  assert.equal(K.chordScale(5, 'maj7#11', C).numeral, 'IV');
+  assert.equal(K.chordScale(0, 'maj7#11', C).diatonic, false);
+  assert.equal(K.chordScale(7, '7b9', C).scale, 'Disminuida (semitono-tono)');
+  assert.equal(K.chordScale(7, '7#9', null).scale, 'Alterada');
+  assert.equal(K.chordScale(2, '7#11', null).scale, 'Lidio dominante');
+});
+
+test('toda escala sugerida existe en el catálogo del visor', () => {
+  const S = require('../src/scales.js');
+  for (const type of K.TYPES) {
+    const sug = K.chordScale(0, type.id, null);
+    assert.ok(S.viewScale(sug.scale), `${type.id} → ${sug.scale}`);
+  }
+});
+
+test('las extensiones suenan una octava arriba', () => {
+  assert.deepEqual(K.chordPitches(0, '13', null, 48), [48, 52, 55, 58, 62, 69]);
+});

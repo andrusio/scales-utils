@@ -12,7 +12,8 @@
   // Grados de un acorde: semitonos desde la tónica y nombre del intervalo.
   const DEGREE_SEMIS = {
     '1': 0, '2': 2, 'b3': 3, '3': 4, '4': 5, 'b5': 6, '5': 7, '#5': 8,
-    '6': 9, 'bb7': 9, 'b7': 10, '7': 11, '9': 2,
+    '6': 9, 'bb7': 9, 'b7': 10, '7': 11,
+    'b9': 1, '9': 2, '#9': 3, '11': 5, '#11': 6, '13': 9,
   };
   const DEGREE_NAMES = {
     '1': 'Tónica',
@@ -27,8 +28,16 @@
     'bb7': 'Séptima disminuida',
     'b7': 'Séptima menor',
     '7': 'Séptima mayor',
+    'b9': 'Novena menor',
     '9': 'Novena mayor',
+    '#9': 'Novena aumentada',
+    '11': 'Oncena justa',
+    '#11': 'Oncena aumentada',
+    '13': 'Trecena mayor',
   };
+
+  // Nombre corto de una nota que se puede omitir ("sin quinta").
+  const OMIT_NAMES = { '5': 'quinta', '9': 'novena', '11': 'oncena' };
 
   // Intervalo entre dos notas sueltas (de la más grave a la otra).
   const INTERVAL_NAMES = [
@@ -62,15 +71,41 @@
     { id: '9',     suffix: '9',       name: 'Novena dominante',      tones: ['1', '3', '5', 'b7', '9'],  triad: 'major' },
     { id: 'maj9',  suffix: 'maj9',    name: 'Novena mayor',          tones: ['1', '3', '5', '7', '9'],   triad: 'major' },
     { id: 'm9',    suffix: 'm9',      name: 'Menor novena',          tones: ['1', 'b3', '5', 'b7', '9'], triad: 'minor' },
+    // Sextas con novena, oncenas agregadas y suspendidos con séptima.
+    { id: '69',    suffix: '6/9',     name: 'Sexta con novena',      tones: ['1', '3', '5', '6', '9'],   triad: 'major' },
+    { id: 'm69',   suffix: 'm6/9',    name: 'Menor sexta con novena', tones: ['1', 'b3', '5', '6', '9'], triad: 'minor' },
+    { id: 'add11', suffix: 'add11',   name: 'Mayor con oncena',      tones: ['1', '3', '5', '11'],       triad: 'major' },
+    { id: 'madd11', suffix: 'm(add11)', name: 'Menor con oncena',    tones: ['1', 'b3', '5', '11'],      triad: 'minor' },
+    { id: '9sus4', suffix: '9sus4',   name: 'Novena suspendida',     tones: ['1', '4', '5', 'b7', '9'],  triad: null },
+    { id: '7sus2', suffix: '7sus2',   name: 'Séptima con segunda suspendida', tones: ['1', '2', '5', 'b7'], triad: null },
+    // Extensiones (en la guitarra suelen tocarse sin quinta y, en los 11 y 13, sin novena).
+    { id: 'mmaj9', suffix: 'm(maj9)', name: 'Menor novena mayor',    tones: ['1', 'b3', '5', '7', '9'],  triad: 'minor' },
+    { id: '11',    suffix: '11',      name: 'Oncena',                tones: ['1', '3', '5', 'b7', '9', '11'], triad: 'major', optional: ['5', '9'] },
+    { id: 'm11',   suffix: 'm11',     name: 'Menor oncena',          tones: ['1', 'b3', '5', 'b7', '9', '11'], triad: 'minor', optional: ['5', '9'] },
+    { id: '13',    suffix: '13',      name: 'Trecena',               tones: ['1', '3', '5', 'b7', '9', '13'], triad: 'major', optional: ['5', '9'] },
+    { id: 'm13',   suffix: 'm13',     name: 'Menor trecena',         tones: ['1', 'b3', '5', 'b7', '9', '13'], triad: 'minor', optional: ['5', '9'] },
+    { id: 'maj13', suffix: 'maj13',   name: 'Trecena mayor',         tones: ['1', '3', '5', '7', '9', '13'], triad: 'major', optional: ['5', '9'] },
+    // Dominantes alterados y acordes con quinta o oncena alterada.
+    { id: '7b9',   suffix: '7b9',     name: 'Séptima con novena menor', tones: ['1', '3', '5', 'b7', 'b9'], triad: 'major' },
+    { id: '7#9',   suffix: '7#9',     name: 'Séptima con novena aumentada (Hendrix)', tones: ['1', '3', '5', 'b7', '#9'], triad: 'major' },
+    { id: '7b5',   suffix: '7b5',     name: 'Séptima con quinta disminuida', tones: ['1', '3', 'b5', 'b7'], triad: 'major' },
+    { id: '7#11',  suffix: '7#11',    name: 'Séptima con oncena aumentada', tones: ['1', '3', '5', 'b7', '#11'], triad: 'major' },
+    { id: 'maj7#11', suffix: 'maj7#11', name: 'Séptima mayor con oncena aumentada (lidio)', tones: ['1', '3', '5', '7', '#11'], triad: 'major' },
+    { id: 'maj7#5', suffix: 'maj7#5', name: 'Séptima mayor aumentada', tones: ['1', '3', '#5', '7'],    triad: null },
   ];
 
-  // Variantes a comparar: cada tipo completo y, en los de 4 o más notas, la
-  // versión sin quinta justa (muy común en la guitarra).
+  // Variantes a comparar: cada tipo completo y versiones con notas omitidas,
+  // como se tocan en la guitarra: sin quinta justa en los de 4 o más notas, y
+  // en los 11 y 13 también sin novena. Cuantas más notas faltan, menos prioridad.
   const VARIANTS = [];
   TYPES.forEach(function (type, i) {
     VARIANTS.push({ type: type, omitted: [], rank: i });
-    if (type.tones.length >= 4 && type.tones.indexOf('5') >= 0) {
-      VARIANTS.push({ type: type, omitted: ['5'], rank: 100 + i });
+    let optional = type.optional || [];
+    if (!type.optional && type.tones.length >= 4 && type.tones.indexOf('5') >= 0) optional = ['5'];
+    // Todas las combinaciones no vacías de notas omitibles.
+    for (let mask = 1; mask < (1 << optional.length); mask++) {
+      const omitted = optional.filter(function (_, j) { return mask & (1 << j); });
+      VARIANTS.push({ type: type, omitted: omitted, rank: 100 * omitted.length + i });
     }
   });
 
@@ -121,7 +156,9 @@
       bass: bassPc,
       inversion: inversionText(bassTone ? bassTone.degree : null),
       tones: tones,
-      noFifth: variant.omitted.length > 0,
+      noFifth: variant.omitted.indexOf('5') >= 0,
+      incomplete: variant.omitted.length > 0,
+      omittedText: variant.omitted.map(function (d) { return 'sin ' + OMIT_NAMES[d]; }).join(', '),
       missing: miss.map(function (d) { return mod(root + DEGREE_SEMIS[d]); }),
       missingNames: tones.filter(function (t) { return t.missing; }).map(function (t) { return t.name; }),
       rank: variant.rank,
@@ -167,15 +204,23 @@
     }
     exact.sort(byPreference(bass));
     partial.sort(byPreference(bass));
-    // Las lecturas "sin quinta" solo se ofrecen si no hay ninguna completa
+    // Las lecturas con notas omitidas solo se ofrecen si no hay ninguna completa
     // (A C E es Am, no un C6 sin quinta).
-    const complete = exact.filter(function (r) { return !r.noFifth; });
+    const complete = exact.filter(function (r) { return !r.incomplete; });
+    // Con 4 o más notas, si ninguna lectura completa tiene al bajo como tónica,
+    // va primero la que sí lo tiene aunque le falte una nota (C E A D con C en
+    // el bajo es C6/9 sin quinta, más que Am(add11)/C).
+    let readings = complete.length ? complete : exact;
+    if (complete.length && notes.length >= 4 && !complete.some(function (r) { return r.root === bass; })) {
+      const onBass = exact.filter(function (r) { return r.incomplete && r.root === bass; });
+      if (onBass.length) readings = [onBass[0]].concat(complete);
+    }
 
     return {
       notes: notes,
       bass: bass,
       interval: notes.length === 2 ? INTERVAL_NAMES[mod(notes[1] - notes[0])] : null,
-      exact: complete.length ? complete : exact,
+      exact: readings,
       partial: exact.length ? [] : partial.slice(0, 5),
     };
   }
@@ -208,7 +253,8 @@
   function chordPitches(root, typeId, bassPc, base) {
     const type = typeById(typeId);
     const b = base === undefined ? 48 : base;
-    const semis = type.tones.map(function (d) { return DEGREE_SEMIS[d] + (d === '9' ? 12 : 0); });
+    // Las extensiones (9, 11, 13) suenan una octava arriba.
+    const semis = type.tones.map(function (d) { return DEGREE_SEMIS[d] + (Number(d.replace(/[#b]/g, '')) >= 9 ? 12 : 0); });
     const rootPitch = b + mod(root - b);
     const out = semis.map(function (x) { return rootPitch + x; });
     if (bassPc !== undefined && bassPc !== null && mod(bassPc) !== mod(root)) {
@@ -236,15 +282,32 @@
     mmaj7: 'Menor melódica', dim: 'Locrio', m7b5: 'Locrio',
     dim7: 'Disminuida (tono-semitono)', aug: 'Tonos enteros', '7#5': 'Tonos enteros',
     '5': 'Pentatónica menor',
+    '69': 'Jónico', add11: 'Jónico', maj13: 'Jónico',
+    m69: 'Dórico', m11: 'Dórico', m13: 'Dórico', madd11: 'Dórico',
+    '9sus4': 'Mixolidio', '7sus2': 'Mixolidio', '11': 'Mixolidio', '13': 'Mixolidio',
+    mmaj9: 'Menor melódica',
+    '7b9': 'Disminuida (semitono-tono)', '7#9': 'Alterada', '7b5': 'Tonos enteros',
+    '7#11': 'Lidio dominante', 'maj7#11': 'Lidio', 'maj7#5': 'Lidio aumentado',
+  };
+
+  // Grados en los que cada tipo es diatónico en una tonalidad mayor (si el tipo
+  // no figura, alcanza con que la tríada coincida). Lista vacía: nunca.
+  const DIATONIC_OK = {
+    '7': ['V'], '9': ['V'], '11': ['V'], '13': ['V'],
+    maj7: ['I', 'IV'], maj9: ['I', 'IV'], maj13: ['I', 'IV'], 'maj7#11': ['IV'],
+    add11: ['I', 'V'], '6': ['I', 'IV', 'V'], '69': ['I', 'IV', 'V'],
+    m9: ['ii', 'vi'], m11: ['ii', 'vi'], madd9: ['ii', 'vi'],
+    m6: ['ii'], m69: ['ii'], m13: ['ii'],
+    mmaj7: [], mmaj9: [], '7b9': [], '7#9': [], '7b5': [], '7#11': [], dim7: [],
   };
 
   function chordScale(root, typeId, key) {
     const type = typeById(typeId);
     if (key !== null && key !== undefined && type.triad) {
       const d = DIATONIC.filter(function (x) { return mod(root - key) === x.offset && x.triad === type.triad; })[0];
-      // Las séptimas tienen que coincidir con la tonalidad: C7 en C mayor no es diatónico.
-      const seventhOk = !(d && ((typeId === '7' && d.numeral !== 'V') || (typeId === 'maj7' && d.numeral !== 'I' && d.numeral !== 'IV')));
-      if (d && seventhOk) {
+      // Las notas agregadas tienen que estar en la tonalidad: C7 en C mayor no es diatónico.
+      const allowed = DIATONIC_OK[typeId];
+      if (d && (!allowed || allowed.indexOf(d.numeral) >= 0)) {
         return { root: root, scale: d.scale, numeral: d.numeral, diatonic: true };
       }
     }

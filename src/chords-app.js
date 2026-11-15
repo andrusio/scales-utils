@@ -88,12 +88,7 @@
     const cell = e.target.closest('[data-note]');
     if (!cell) return;
     const info = window.InstrumentMode.cellInfo(cell, config());
-    if (state.positions.has(info.key)) {
-      state.positions.delete(info.key);
-    } else {
-      state.positions.set(info.key, { pitch: info.pitch });
-      window.Sound.tap(info.pitch);
-    }
+    if (window.InstrumentMode.togglePosition(state.positions, info)) window.Sound.tap(info.pitch);
     state.reading = 0;
     render();
   });
@@ -125,7 +120,7 @@
 
     if (reading) {
       const extra = [reading.typeName];
-      if (reading.noFifth) extra.push('sin quinta');
+      if (reading.omittedText) extra.push(reading.omittedText);
       if (reading.inversion) extra.push(reading.inversion);
       html += '<div class="chord-name">' + reading.label + '</div>' +
         '<div class="chord-type">' + extra.join(' · ') + '</div>' +

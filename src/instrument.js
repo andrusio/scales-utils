@@ -105,8 +105,26 @@
     return { key: s + ':' + f, note: cell.dataset.note, string: s, fret: f, pitch: window.Fretboard.midiAt(config, s, f) };
   }
 
+  // Marca o desmarca una casilla/tecla en `positions` (Map key -> {pitch}).
+  // En cuerdas solo puede sonar una nota por cuerda: al marcar un traste se
+  // desmarca el que hubiera en esa misma cuerda. Devuelve true si quedó marcada.
+  function togglePosition(positions, info) {
+    if (positions.has(info.key)) {
+      positions.delete(info.key);
+      return false;
+    }
+    if (info.string !== undefined) {
+      Array.from(positions.keys()).forEach(function (k) {
+        if (k.split(':')[0] === String(info.string)) positions.delete(k);
+      });
+    }
+    positions.set(info.key, { pitch: info.pitch });
+    return true;
+  }
+
   window.InstrumentMode = {
     get: get, set: set, renderPiano: renderPiano, renderBoard: renderBoard, cellInfo: cellInfo,
+    togglePosition: togglePosition,
     PIANO_LOW: PIANO_LOW, PIANO_HIGH: PIANO_HIGH,
   };
 })();
